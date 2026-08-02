@@ -1,0 +1,6 @@
+packages:
+  - 'packages/*'
+  - 'examples/*'
+  - 'benchmarks'
+  - 'docs'
+  - 'landing'
