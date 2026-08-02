@@ -23,3 +23,20 @@ dist/
 # specs doc
 specs.md
 specs.pdf
+
+# Next.js
+.next/
+out/
+build/
+.source/
+.vercel/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
