@@ -5,6 +5,9 @@ import type { ToolRegistry } from '../tools/ToolRegistry.js';
 import type { GuardrailPipeline } from '../guardrails/GuardrailPipeline.js';
 import type { ApprovalGate } from '../guardrails/ApprovalGate.js';
 import type { GuardrailReport, ApprovalRequest, ToolCallPayload } from '../guardrails/types.js';
+import type { RunEventEmitter } from '../events/RunEventEmitter.js';
+import type { Tracer } from '../tracing/Tracer.js';
+import type { Trace } from '../tracing/types.js';
 
 export type RunStatus = 'PLANNING' | 'EXECUTING' | 'AWAITING_APPROVAL' | 'VERIFYING' | 'DONE' | 'FAILED';
 
@@ -43,6 +46,10 @@ export interface RunContext {
     schemaRetryCount?: number | undefined;
     maxSchemaRetries?: number | undefined;
     structuredData?: unknown | undefined;
+
+    // Events & Tracing
+    eventEmitter?: RunEventEmitter | undefined;
+    tracer?: Tracer | undefined;
 }
 
 export interface RunOptions {
@@ -62,6 +69,10 @@ export interface RunOptions {
     // Structured Output options
     outputSchema?: ZodTypeAny | undefined;
     maxSchemaRetries?: number | undefined;
+
+    // Events & Tracing options
+    eventEmitter?: RunEventEmitter | undefined;
+    tracer?: Tracer | undefined;
 }
 
 export interface RunResult<TData = unknown> {
@@ -74,4 +85,5 @@ export interface RunResult<TData = unknown> {
     pendingApproval?: ApprovalRequest | undefined;
     guardrailReports?: GuardrailReport[] | undefined;
     structuredData?: TData | undefined;
+    trace?: Trace | undefined;
 }

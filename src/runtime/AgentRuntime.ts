@@ -2,6 +2,7 @@ import { RunStateMachine } from './RunStateMachine.js';
 import type { LLMPort } from '../llm/LLMPort.js';
 import type { ToolRegistry } from '../tools/ToolRegistry.js';
 import type { RunContext, RunOptions, RunResult } from './types.js';
+import { Tracer } from '../tracing/Tracer.js';
 
 export class AgentRuntime {
     constructor(
@@ -32,9 +33,14 @@ export class AgentRuntime {
                 approvalGate: options.approvalGate,
                 outputSchema: options.outputSchema,
                 maxSchemaRetries: options.maxSchemaRetries,
+                eventEmitter: options.eventEmitter,
+                tracer: options.tracer || new Tracer(),
             };
         } else {
             context = input;
+            if (!context.tracer) {
+                context.tracer = new Tracer();
+            }
         }
 
         const stateMachine = new RunStateMachine();
@@ -43,15 +49,26 @@ export class AgentRuntime {
             await stateMachine.step(context);
         }
 
+        const trace = context.tracer?.endRun(stateMachine.status);
+
         if (stateMachine.status === 'DONE') {
+            const finalOutput = context.lastOutput || '';
+            if (context.eventEmitter) {
+                context.eventEmitter.emitEvent({
+                    type: 'run_completed',
+                    payload: { output: finalOutput, turns: context.currentTurn },
+                });
+            }
+
             return {
                 success: true,
                 status: 'DONE',
-                output: context.lastOutput || '',
+                output: finalOutput,
                 turns: context.currentTurn,
                 messages: context.messages,
                 guardrailReports: context.guardrailReports,
                 structuredData: context.structuredData as TData | undefined,
+                trace,
             };
         }
 
@@ -65,7 +82,16 @@ export class AgentRuntime {
                 pendingApproval: context.pendingApprovalRequest,
                 guardrailReports: context.guardrailReports,
                 structuredData: context.structuredData as TData | undefined,
+                trace,
             };
+        }
+
+        const err = context.error || new Error('Run failed without explicit error details');
+        if (context.eventEmitter) {
+            context.eventEmitter.emitEvent({
+                type: 'run_failed',
+                payload: { error: err },
+            });
         }
 
         return {
@@ -74,9 +100,10 @@ export class AgentRuntime {
             output: context.lastOutput || '',
             turns: context.currentTurn,
             messages: context.messages,
-            error: context.error || new Error('Run failed without explicit error details'),
+            error: err,
             guardrailReports: context.guardrailReports,
             structuredData: context.structuredData as TData | undefined,
+            trace,
         };
     }
 

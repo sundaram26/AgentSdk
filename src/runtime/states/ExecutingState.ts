@@ -15,6 +15,19 @@ export class ExecutingState extends AgentState {
         }
 
         for (const toolCall of toolCalls) {
+            // Emit tool_started event
+            if (context.eventEmitter) {
+                context.eventEmitter.emitEvent({
+                    type: 'tool_started',
+                    payload: { toolName: toolCall.name, args: toolCall.arguments },
+                });
+            }
+
+            const toolSpanId = context.tracer?.startSpan(`tool_${toolCall.name}`, 'tool', {
+                toolName: toolCall.name,
+                arguments: toolCall.arguments,
+            });
+
             // 1. Evaluate Tool Guardrails
             if (context.toolPipeline) {
                 const { report } = await context.toolPipeline.execute({
@@ -28,6 +41,9 @@ export class ExecutingState extends AgentState {
                 if (!report.passed) {
                     const blockEval = report.evaluations.find((e) => e.actionTaken === 'block');
                     if (blockEval) {
+                        if (toolSpanId && context.tracer) {
+                            context.tracer.endSpan(toolSpanId, new Error(blockEval.reason));
+                        }
                         return new FailedState(
                             new GuardrailError(blockEval.ruleName, blockEval.reason || 'Tool execution blocked by guardrail policy')
                         );
@@ -41,16 +57,42 @@ export class ExecutingState extends AgentState {
                             pauseEval.reason || 'Tool requires human approval'
                         );
                         context.pendingApprovalRequest = approvalReq;
+                        if (toolSpanId && context.tracer) {
+                            context.tracer.endSpan(toolSpanId, undefined, { status: 'AWAITING_APPROVAL' });
+                        }
                         return new AwaitingApprovalState();
                     }
                 }
             }
 
             // 2. Execute Tool
+            const startTime = Date.now();
             const executionResult = await context.tools.executeTool(
                 toolCall.name,
                 toolCall.arguments
             );
+            const durationMs = Date.now() - startTime;
+
+            if (toolSpanId && context.tracer) {
+                context.tracer.endSpan(
+                    toolSpanId,
+                    executionResult.success ? undefined : executionResult.error,
+                    { result: executionResult.success ? executionResult.result : undefined }
+                );
+            }
+
+            // Emit tool_completed event
+            if (context.eventEmitter) {
+                context.eventEmitter.emitEvent({
+                    type: 'tool_completed',
+                    payload: {
+                        toolName: toolCall.name,
+                        result: executionResult.success ? executionResult.result : executionResult.error.message,
+                        durationMs,
+                        success: executionResult.success,
+                    },
+                });
+            }
 
             if (executionResult.success) {
                 context.messages.push({

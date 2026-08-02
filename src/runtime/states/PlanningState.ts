@@ -23,14 +23,31 @@ export class PlanningState extends AgentState {
             if (userMsgIndex !== -1) {
                 const userMsg = context.messages[userMsgIndex];
                 if (userMsg) {
+                    const spanId = context.tracer?.startSpan('input_guardrail', 'guardrail', { stage: 'input' });
                     const { content: sanitizedInput, report } = await context.inputPipeline.execute(userMsg.content);
 
                     context.guardrailReports = context.guardrailReports || [];
                     context.guardrailReports.push(report);
 
+                    if (spanId && context.tracer) {
+                        context.tracer.endSpan(spanId, undefined, { passed: report.passed });
+                    }
+
                     if (!report.passed) {
                         const blockedEval = report.evaluations.find((e) => e.actionTaken === 'block');
                         if (blockedEval) {
+                            if (context.eventEmitter) {
+                                context.eventEmitter.emitEvent({
+                                    type: 'guardrail_triggered',
+                                    payload: {
+                                        stage: 'input',
+                                        ruleName: blockedEval.ruleName,
+                                        action: blockedEval.actionTaken,
+                                        reason: blockedEval.reason,
+                                    },
+                                });
+                            }
+
                             return new FailedState(
                                 new GuardrailError(blockedEval.ruleName, blockedEval.reason || 'Input blocked by guardrail policy')
                             );
@@ -46,11 +63,28 @@ export class PlanningState extends AgentState {
             // Build model prompt messages with system prompt and available tools
             const messagesToSubmit = this.buildPromptMessages(context);
 
+            const llmSpanId = context.tracer?.startSpan(`llm_generate_turn_${context.currentTurn}`, 'llm', {
+                model: context.model,
+                provider: context.llm.providerName,
+            });
+
             const response = await context.llm.generate(messagesToSubmit, {
                 model: context.model,
                 temperature: context.temperature,
                 maxTokens: context.maxTokens,
             });
+
+            if (llmSpanId && context.tracer) {
+                context.tracer.endSpan(llmSpanId, undefined, { responseLength: response.text.length });
+            }
+
+            // Emit text_delta event
+            if (context.eventEmitter) {
+                context.eventEmitter.emitEvent({
+                    type: 'text_delta',
+                    payload: { delta: response.text },
+                });
+            }
 
             // Store model response in context message history
             context.messages.push({
