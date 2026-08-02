@@ -1,12 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { LLMPort } from '../LLMPort.js';
-import type { Message, LLMOptions, LLMResponse } from '../types.js';
+import type { Message, LLMOptions, LLMResponse, AdapterOptions } from '../types.js';
 
 export class ClaudeAdapter implements LLMPort {
     public readonly providerName = 'claude';
     private client: Anthropic;
 
-    constructor(apiKey?: string) {
+    constructor(options?: AdapterOptions | string) {
+        const apiKey = typeof options === 'string' ? options : options?.apiKey;
         this.client = new Anthropic({ apiKey });
     }
 

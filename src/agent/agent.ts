@@ -9,7 +9,7 @@ import type { SutraEvent } from '../events/types.js';
 export class Agent {
     private runtime: AgentRuntime;
     private builderConfig: AgentBuilder;
-    private activeContext?: RunContext | undefined;
+    private activeContexts = new Map<string, RunContext>();
 
     constructor(builder: AgentBuilder) {
         this.builderConfig = builder;
@@ -20,7 +20,7 @@ export class Agent {
         const emitter = new RunEventEmitter();
         const tracer = new Tracer();
 
-        this.activeContext = {
+        const context: RunContext = {
             llm: this.builderConfig.llmPort!,
             tools: this.builderConfig.toolRegistry,
             messages: [{ role: 'user', content: input }],
@@ -41,14 +41,20 @@ export class Agent {
             tracer: tracer,
         };
 
-        return this.runtime.run<TData>(this.activeContext);
+        const result = await this.runtime.run<TData>(context);
+
+        if (result.status === 'AWAITING_APPROVAL' && result.pendingApproval) {
+            this.activeContexts.set(result.pendingApproval.id, context);
+        }
+
+        return result;
     }
 
     public stream(input: string): AsyncIterable<SutraEvent> {
         const emitter = new RunEventEmitter();
         const tracer = new Tracer();
 
-        this.activeContext = {
+        const context: RunContext = {
             llm: this.builderConfig.llmPort!,
             tools: this.builderConfig.toolRegistry,
             messages: [{ role: 'user', content: input }],
@@ -69,8 +75,12 @@ export class Agent {
             tracer: tracer,
         };
 
-        // Start background run
-        this.runtime.run(this.activeContext).catch((err) => {
+        // Start background run and store context if paused
+        this.runtime.run(context).then((result) => {
+            if (result.status === 'AWAITING_APPROVAL' && result.pendingApproval) {
+                this.activeContexts.set(result.pendingApproval.id, context);
+            }
+        }).catch((err) => {
             emitter.emitEvent({
                 type: 'run_failed',
                 payload: { error: err instanceof Error ? err : new Error(String(err)) },
@@ -85,10 +95,13 @@ export class Agent {
     }
 
     public async resume<TData = unknown>(approvalId: string, approved: boolean): Promise<RunResult<TData>> {
-        if (!this.activeContext) {
-            throw new Error('Cannot resume: No active run context found for this agent.');
+        const context = this.activeContexts.get(approvalId);
+        if (!context) {
+            throw new Error(`Cannot resume: No pending approval context found for approval ID '${approvalId}'.`);
         }
 
-        return this.runtime.resume<TData>(this.activeContext, approvalId, approved);
+        const result = await this.runtime.resume<TData>(context, approvalId, approved);
+        this.activeContexts.delete(approvalId);
+        return result;
     }
 }

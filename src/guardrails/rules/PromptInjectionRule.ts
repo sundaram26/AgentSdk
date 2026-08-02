@@ -1,4 +1,9 @@
-import type { GuardrailRule, GuardrailStage, GuardrailEvaluation } from '../types.js';
+import type {
+    GuardrailRule,
+    GuardrailStage,
+    GuardrailEvaluation,
+    PromptInjectionOptions,
+} from '../types.js';
 
 export class PromptInjectionRule implements GuardrailRule<string> {
     public readonly name = 'PromptInjectionRule';
@@ -13,9 +18,11 @@ export class PromptInjectionRule implements GuardrailRule<string> {
         /disregard\s+safety\s+guidelines/i,
     ];
 
-    constructor(customPatterns?: RegExp[]) {
-        if (customPatterns) {
-            this.patterns.push(...customPatterns);
+    constructor(options?: PromptInjectionOptions | RegExp[]) {
+        if (Array.isArray(options)) {
+            this.patterns.push(...options);
+        } else if (options?.customPatterns) {
+            this.patterns.push(...options.customPatterns);
         }
     }
 

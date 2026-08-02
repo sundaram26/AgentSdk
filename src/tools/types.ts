@@ -1,18 +1,22 @@
 import type { ZodTypeAny, output as ZodOutput } from 'zod';
 import type { ToolError } from './ToolError.js';
 
+export interface ToolExecutionOptions {
+    signal?: AbortSignal | undefined;
+}
+
 export interface ToolConfig<TSchema extends ZodTypeAny = ZodTypeAny, TOutput = unknown> {
     name: string;
     description: string;
     inputSchema: TSchema;
-    execute: (input: ZodOutput<TSchema>) => Promise<TOutput>;
+    execute: (input: ZodOutput<TSchema>, options?: ToolExecutionOptions | undefined) => Promise<TOutput>;
 }
 
 export interface ToolCommand<TInput = unknown, TOutput = unknown> {
     name: string;
     description: string;
     inputSchema: ZodTypeAny;
-    execute: (input: TInput) => Promise<TOutput>;
+    execute: (input: TInput, options?: ToolExecutionOptions | undefined) => Promise<TOutput>;
 }
 
 export type AnyToolCommand = ToolCommand<never, unknown>;

@@ -35,6 +35,12 @@ export interface ApprovalRequest {
     requestedAt: Date;
 }
 
+// Rule Specific Types & Options
+
+export interface PromptInjectionOptions {
+    customPatterns?: RegExp[] | undefined;
+}
+
 export interface ToolCallPayload {
     toolName: string;
     args: Record<string, unknown>;

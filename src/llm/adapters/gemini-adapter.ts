@@ -1,13 +1,14 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ModelParams, GenerationConfig, GenerateContentRequest, Content } from '@google/generative-ai';
 import type { LLMPort } from '../LLMPort.js';
-import type { Message, LLMOptions, LLMResponse } from '../types.js';
+import type { Message, LLMOptions, LLMResponse, AdapterOptions } from '../types.js';
 
 export class GeminiAdapter implements LLMPort {
     public readonly providerName = 'gemini';
     private client: GoogleGenerativeAI;
 
-    constructor(apiKey?: string) {
+    constructor(options?: AdapterOptions | string) {
+        const apiKey = typeof options === 'string' ? options : options?.apiKey;
         this.client = new GoogleGenerativeAI(apiKey || process.env.GEMINI_API_KEY || '');
     }
 

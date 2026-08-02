@@ -14,3 +14,7 @@ export interface LLMOptions {
     temperature?: number | undefined;
     maxTokens?: number | undefined;
 }
+
+export interface AdapterOptions {
+    apiKey?: string | undefined;
+}

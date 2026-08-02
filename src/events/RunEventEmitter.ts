@@ -42,6 +42,18 @@ export class RunEventEmitter extends EventEmitter {
         }
     }
 
+    public destroy(): void {
+        this.isDone = true;
+        this.queue = [];
+        while (this.resolvers.length > 0) {
+            const resolve = this.resolvers.shift();
+            if (resolve) {
+                resolve({ value: undefined as unknown as SutraEvent, done: true });
+            }
+        }
+        this.removeAllListeners();
+    }
+
     public onTextDelta(listener: (payload: TextDeltaPayload) => void): this {
         return this.on('text_delta', listener);
     }

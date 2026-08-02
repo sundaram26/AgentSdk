@@ -1,12 +1,13 @@
 import OpenAI from 'openai';
 import type { LLMPort } from '../LLMPort.js';
-import type { Message, LLMOptions, LLMResponse } from '../types.js';
+import type { Message, LLMOptions, LLMResponse, AdapterOptions } from '../types.js';
 
 export class OpenAIAdapter implements LLMPort {
     public readonly providerName = 'openai';
     private client: OpenAI;
 
-    constructor(apiKey?: string) {
+    constructor(options?: AdapterOptions | string) {
+        const apiKey = typeof options === 'string' ? options : options?.apiKey;
         this.client = new OpenAI({ apiKey });
     }
 
