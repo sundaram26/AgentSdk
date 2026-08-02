@@ -1,3 +1,4 @@
+import type { ZodTypeAny } from 'zod';
 import { Agent } from './agent.js';
 import type { LLMPort } from '../llm/LLMPort.js';
 import type { AnyToolCommand } from '../tools/types.js';
@@ -7,14 +8,18 @@ import { ApprovalGate } from '../guardrails/ApprovalGate.js';
 import type { GuardrailRule, ToolCallPayload } from '../guardrails/types.js';
 
 export class AgentBuilder {
-    public instructionsText?: string;
+    public instructionsText?: string | undefined;
     public modelName: string = 'gpt-4o';
-    public llmPort?: LLMPort;
+    public llmPort?: LLMPort | undefined;
     public toolRegistry: ToolRegistry = new ToolRegistry();
     public maxTurnsCount: number = 10;
     public maxReasksCount: number = 1;
-    public temperatureValue?: number;
-    public maxTokensValue?: number;
+    public temperatureValue?: number | undefined;
+    public maxTokensValue?: number | undefined;
+
+    // Structured Output
+    public outputSchemaObject?: ZodTypeAny | undefined;
+    public maxSchemaRetriesCount: number = 2;
 
     // Guardrail pipelines
     public inputPipeline: GuardrailPipeline<string> = new GuardrailPipeline<string>();
@@ -59,6 +64,16 @@ export class AgentBuilder {
 
     public maxTokens(tokens: number): this {
         this.maxTokensValue = tokens;
+        return this;
+    }
+
+    public outputSchema<TSchema extends ZodTypeAny>(schema: TSchema): this {
+        this.outputSchemaObject = schema;
+        return this;
+    }
+
+    public maxSchemaRetries(max: number): this {
+        this.maxSchemaRetriesCount = max;
         return this;
     }
 

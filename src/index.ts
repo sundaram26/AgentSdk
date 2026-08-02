@@ -5,6 +5,7 @@ export * from './llm/adapters/claude-adapter.js';
 export * from './llm/adapters/openai-adapter.js';
 export * from './llm/adapters/gemini-adapter.js';
 export * from './guardrails/index.js';
+export * from './structured/index.js';
 export * from './runtime/index.js';
 export * from './agent/agent.js';
 export * from './agent/agent-builder.js';

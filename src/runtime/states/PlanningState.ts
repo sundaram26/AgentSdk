@@ -90,6 +90,10 @@ export class PlanningState extends AgentState {
             systemContent += toolSystemPrompt;
         }
 
+        if (context.outputSchema) {
+            systemContent += '\n\nIMPORTANT: Your final response MUST be a valid JSON object matching the requested output schema.';
+        }
+
         if (systemContent.trim()) {
             messages.push({
                 role: 'system',

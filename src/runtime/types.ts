@@ -1,3 +1,4 @@
+import type { ZodTypeAny } from 'zod';
 import type { LLMPort } from '../llm/LLMPort.js';
 import type { Message } from '../llm/types.js';
 import type { ToolRegistry } from '../tools/ToolRegistry.js';
@@ -36,6 +37,12 @@ export interface RunContext {
     guardrailReports?: GuardrailReport[] | undefined;
     reaskCount?: number | undefined;
     maxReasks?: number | undefined;
+
+    // Structured Output Validation
+    outputSchema?: ZodTypeAny | undefined;
+    schemaRetryCount?: number | undefined;
+    maxSchemaRetries?: number | undefined;
+    structuredData?: unknown | undefined;
 }
 
 export interface RunOptions {
@@ -51,9 +58,13 @@ export interface RunOptions {
     outputPipeline?: GuardrailPipeline<string> | undefined;
     approvalGate?: ApprovalGate | undefined;
     maxReasks?: number | undefined;
+
+    // Structured Output options
+    outputSchema?: ZodTypeAny | undefined;
+    maxSchemaRetries?: number | undefined;
 }
 
-export interface RunResult {
+export interface RunResult<TData = unknown> {
     success: boolean;
     status: RunStatus;
     output: string;
@@ -62,4 +73,5 @@ export interface RunResult {
     error?: Error | undefined;
     pendingApproval?: ApprovalRequest | undefined;
     guardrailReports?: GuardrailReport[] | undefined;
+    structuredData?: TData | undefined;
 }

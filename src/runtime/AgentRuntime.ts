@@ -9,7 +9,7 @@ export class AgentRuntime {
         private readonly tools: ToolRegistry
     ) {}
 
-    public async run(input: string | RunContext, options?: RunOptions): Promise<RunResult> {
+    public async run<TData = unknown>(input: string | RunContext, options?: RunOptions): Promise<RunResult<TData>> {
         let context: RunContext;
 
         if (typeof input === 'string') {
@@ -30,6 +30,8 @@ export class AgentRuntime {
                 toolPipeline: options.toolPipeline,
                 outputPipeline: options.outputPipeline,
                 approvalGate: options.approvalGate,
+                outputSchema: options.outputSchema,
+                maxSchemaRetries: options.maxSchemaRetries,
             };
         } else {
             context = input;
@@ -49,6 +51,7 @@ export class AgentRuntime {
                 turns: context.currentTurn,
                 messages: context.messages,
                 guardrailReports: context.guardrailReports,
+                structuredData: context.structuredData as TData | undefined,
             };
         }
 
@@ -61,6 +64,7 @@ export class AgentRuntime {
                 messages: context.messages,
                 pendingApproval: context.pendingApprovalRequest,
                 guardrailReports: context.guardrailReports,
+                structuredData: context.structuredData as TData | undefined,
             };
         }
 
@@ -72,10 +76,11 @@ export class AgentRuntime {
             messages: context.messages,
             error: context.error || new Error('Run failed without explicit error details'),
             guardrailReports: context.guardrailReports,
+            structuredData: context.structuredData as TData | undefined,
         };
     }
 
-    public async resume(context: RunContext, approvalId: string, approved: boolean): Promise<RunResult> {
+    public async resume<TData = unknown>(context: RunContext, approvalId: string, approved: boolean): Promise<RunResult<TData>> {
         if (!context.approvalGate) {
             throw new Error('Cannot resume: No ApprovalGate configured on run context.');
         }
@@ -85,6 +90,6 @@ export class AgentRuntime {
             throw new Error(`Approval request with ID '${approvalId}' was not found or is not pending.`);
         }
 
-        return this.run(context);
+        return this.run<TData>(context);
     }
 }
