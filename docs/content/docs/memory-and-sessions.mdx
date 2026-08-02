@@ -1,0 +1,38 @@
+---
+title: Memory Engine & Sessions
+description: Multi-tier persistent memory storage for user facts and episodic session history.
+---
+
+# Memory Engine & Session Management
+
+Agent SDK features a multi-tier `MemoryManager` designed to provide long-term memory across user sessions.
+
+---
+
+## 🧠 Memory Tiers
+
+1. **Fact Memory**: Key-value or structured facts about the user (e.g. name, preferences, account tier).
+2. **Episodic Memory**: Semantic conversation logs stored per session.
+
+---
+
+## 💻 Code Example
+
+```typescript
+import { MemoryManager, createAgent } from 'agent-sdk';
+
+const memory = new MemoryManager();
+
+// Store persistent facts
+await memory.setFact('user_name', 'Alice');
+await memory.setFact('preferred_language', 'TypeScript');
+
+const agent = createAgent()
+  .name('PersonalAssistant')
+  .memory(memory) // Attach memory manager
+  .sessionId('session_user_402')
+  .build();
+
+const result = await agent.run('Write a hello world snippet for me.');
+// Agent automatically accesses fact memory and generates TypeScript code!
+```

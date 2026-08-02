@@ -1,0 +1,39 @@
+---
+title: Real-Time Event Streaming
+description: Listen to typed real-time async event streams using agent.stream().
+---
+
+# Real-Time Event Streaming
+
+Agent SDK exposes a real-time event stream via `agent.stream()`, delivering granular event updates as the state machine transitions.
+
+---
+
+## 🌊 Stream Events
+
+- `state_changed`: Emitted on state transitions (e.g. `PLANNING` ➔ `EXECUTING`).
+- `text_delta`: Emitted as LLM text tokens arrive.
+- `tool_started`: Emitted when tool execution begins.
+- `tool_completed`: Emitted when tool execution finishes.
+
+---
+
+## 💻 Code Example
+
+```typescript
+import { createAgent, OpenAIAdapter } from 'agent-sdk';
+
+const agent = createAgent()
+  .llm(new OpenAIAdapter())
+  .build();
+
+const eventStream = agent.stream('Tell me a story about space.');
+
+for await (const event of eventStream) {
+  if (event.type === 'text_delta') {
+    process.stdout.write(event.payload.delta);
+  } else if (event.type === 'state_changed') {
+    console.log(`[State: ${event.payload.from} -> ${event.payload.to}]`);
+  }
+}
+```

@@ -1,0 +1,68 @@
+---
+title: Quickstart Guide
+description: Build and run your first tool-enabled AI agent with execution tracing in under 2 minutes.
+---
+
+# Quickstart Guide
+
+This guide demonstrates how to define a type-safe tool, initialize an agent using the fluent `AgentBuilder`, and execute a task with automatic execution tracing.
+
+---
+
+## 1. Create a Tool
+
+Define a tool using `createTool` and a Zod schema to validate input parameters at runtime:
+
+```typescript
+import { createTool } from 'agent-sdk';
+import { z } from 'zod';
+
+const weatherTool = createTool({
+  name: 'get_weather',
+  description: 'Fetches the current weather for a specific city',
+  inputSchema: z.object({
+    city: z.string().describe('The target city name'),
+  }),
+  execute: async ({ city }) => {
+    // Implement real API call or database query here
+    return { city, temperature: '72°F', condition: 'Sunny', humidity: '45%' };
+  },
+});
+```
+
+---
+
+## 2. Initialize the Agent
+
+Use `createAgent()` to configure model settings, instructions, adapters, and tools:
+
+```typescript
+import { createAgent, OpenAIAdapter } from 'agent-sdk';
+
+const agent = createAgent()
+  .name('WeatherAssistant')
+  .instructions('You are a helpful assistant capable of looking up real-time weather information.')
+  .llm(new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY }))
+  .tool(weatherTool)
+  .debug(true) // Formatted CLI debug logger
+  .build();
+```
+
+---
+
+## 3. Run the Agent
+
+Execute a user prompt asynchronously using `agent.run(prompt)`:
+
+```typescript
+async function main() {
+  const result = await agent.run('What is the weather in San Francisco right now?');
+
+  console.log('Status:', result.status); // 'DONE'
+  console.log('Output:', result.output);
+  console.log('Turns:', result.turns);
+  console.log('Trace Duration:', result.trace?.durationMs, 'ms');
+}
+
+main().catch(console.error);
+```

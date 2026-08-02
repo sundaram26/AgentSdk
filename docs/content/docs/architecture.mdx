@@ -1,0 +1,93 @@
+---
+title: Architecture & Ports & Adapters
+description: Deep-dive into the Hexagonal Ports & Adapters architecture powering Agent SDK's provider independence.
+---
+
+# Ports & Adapters Architecture
+
+Agent SDK adopts the **Hexagonal Architecture (Ports & Adapters)** design pattern to achieve 100% provider independence. All core agent components—such as the state machine, memory engine, and guardrails—interact exclusively with abstract interfaces (Ports), completely decoupled from external LLM SDKs (Adapters).
+
+---
+
+## 🔌 The `LLMPort` Interface
+
+At the core of the system is the `LLMPort` contract:
+
+```typescript
+export interface LLMPort {
+  readonly providerName: string;
+  generate(messages: Message[], options: LLMOptions): Promise<LLMResponse>;
+  stream(messages: Message[], options: LLMOptions): AsyncIterable<string>;
+}
+```
+
+Any class implementing `LLMPort` can be plugged directly into an agent without modifying any state machine logic.
+
+---
+
+## 🛠️ Built-in Adapters
+
+Agent SDK includes zero-dependency, production-grade adapters for all major LLM providers:
+
+### 1. `OpenAIAdapter`
+Supports GPT-4o, GPT-4o-mini, and custom OpenAI-compatible endpoints.
+
+```typescript
+import { OpenAIAdapter } from 'agent-sdk';
+
+const openaiAdapter = new OpenAIAdapter({
+  apiKey: process.env.OPENAI_API_KEY,
+  model: 'gpt-4o',
+});
+```
+
+### 2. `AnthropicAdapter`
+Supports Claude 3.5 Sonnet, Claude 3 Opus, and Claude 3 Haiku.
+
+```typescript
+import { AnthropicAdapter } from 'agent-sdk';
+
+const anthropicAdapter = new AnthropicAdapter({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  model: 'claude-3-5-sonnet-20241022',
+});
+```
+
+### 3. `GeminiAdapter`
+Supports Gemini 1.5 Pro and Gemini 1.5 Flash.
+
+```typescript
+import { GeminiAdapter } from 'agent-sdk';
+
+const geminiAdapter = new GeminiAdapter({
+  apiKey: process.env.GEMINI_API_KEY,
+  model: 'gemini-1.5-pro',
+});
+```
+
+---
+
+## ⚡ Custom LLM Adapters
+
+You can implement a custom `LLMPort` for internal models, Ollama, or vLLM in under 20 lines of code:
+
+```typescript
+import { LLMPort, Message, LLMOptions, LLMResponse } from 'agent-sdk';
+
+export class CustomLocalAdapter implements LLMPort {
+  public readonly providerName = 'custom-local';
+
+  async generate(messages: Message[], options: LLMOptions): Promise<LLMResponse> {
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ model: 'llama3', messages }),
+    });
+    const data = await res.json();
+    return { text: data.message.content };
+  }
+
+  async *stream(messages: Message[], options: LLMOptions): AsyncIterable<string> {
+    yield 'Streamed chunk response';
+  }
+}
+```

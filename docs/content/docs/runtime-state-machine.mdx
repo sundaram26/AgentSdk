@@ -1,0 +1,71 @@
+---
+title: Finite State Machine Runtime
+description: Understand the 6 explicit states and deterministic transition rules governing agent execution.
+---
+
+# Finite State Machine Runtime
+
+Unlike traditional loops that rely on unconstrained while-loops, Agent SDK executes every run inside a **Deterministic Finite State Machine (FSM)** driven by `RunStateMachine`.
+
+---
+
+## 🔄 The 6 Explicit Runtime States
+
+```
+                 ┌──────────────┐
+                 │   PLANNING   │
+                 └──────┬───────┘
+                        │ (Tool Calls Present)
+                        ▼
+                 ┌──────────────┐
+                 │  EXECUTING   │
+                 └──────┬───────┘
+                        │ (Tools Complete)
+                        ▼
+                 ┌──────────────┐
+                 │  VERIFYING   │ ◄─────── (Self-Repair Retry)
+                 └──────┬───────┘
+                        │
+         ┌──────────────┼──────────────┐
+         ▼              ▼              ▼
+   ┌──────────┐  ┌─────────────┐  ┌──────────┐
+   │   DONE   │  │  AWAITING   │  │  FAILED  │
+   └──────────┘  │  APPROVAL   │  └──────────┘
+                 └─────────────┘
+```
+
+### 1. `PLANNING`
+The agent invokes the LLM adapter with conversation history, active system instructions, and available tools. If tool calls are returned, the state transitions to `EXECUTING`. Otherwise, it transitions to `VERIFYING`.
+
+### 2. `EXECUTING`
+Executes all requested tool calls sequentially through registered tool handlers and `toolGuardrail` pipelines. If a tool requires human confirmation, execution pauses and transitions to `AWAITING_APPROVAL`.
+
+### 3. `VERIFYING`
+Validates LLM text outputs and structured Zod outputs through `outputGuardrail` rules and `outputSchema` definitions. If validation fails, self-repair triggers a transition back to `PLANNING`. If validation succeeds, it transitions to `DONE`.
+
+### 4. `DONE`
+Terminal state indicating successful run completion.
+
+### 5. `AWAITING_APPROVAL`
+Paused state triggered by `ApprovalGate` when a tool requires explicit human permission.
+
+### 6. `FAILED`
+Terminal state indicating unrecoverable failure or exceeded turn limits (`maxTurns`).
+
+---
+
+## 🛠️ Overriding States with `StateFactory`
+
+You can extend or swap state implementations by injecting a custom `StateFactory`:
+
+```typescript
+import { StateFactory, PlanningState } from 'agent-sdk';
+
+const customFactory = new StateFactory({
+  PLANNING: () => new PlanningState(),
+});
+
+const agent = createAgent()
+  .stateFactory(customFactory)
+  .build();
+```

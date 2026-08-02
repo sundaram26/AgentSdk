@@ -1,0 +1,61 @@
+---
+title: Tools & Zod Schema Validation
+description: Define type-safe tools with runtime parameter validation, async execution, and error handling.
+---
+
+# Tools & Schema Validation
+
+Tools allow agents to interact with external databases, APIs, and file systems. Every tool in Agent SDK is strongly typed using **Zod**.
+
+---
+
+## 🛠️ Defining a Tool
+
+Use `createTool()` to construct a tool definition:
+
+```typescript
+import { createTool } from 'agent-sdk';
+import { z } from 'zod';
+
+const calculateTaxTool = createTool({
+  name: 'calculate_tax',
+  description: 'Calculates state tax for a given purchase amount',
+  inputSchema: z.object({
+    amount: z.number().positive().describe('Total transaction amount in USD'),
+    state: z.string().length(2).describe('2-letter state code, e.g. CA, NY'),
+  }),
+  execute: async ({ amount, state }) => {
+    const taxRate = state === 'CA' ? 0.0725 : 0.06;
+    const tax = amount * taxRate;
+    return { amount, state, taxRate, taxAmount: parseFloat(tax.toFixed(2)) };
+  },
+});
+```
+
+---
+
+## 🏛️ `ToolRegistry` Operations
+
+The `ToolRegistry` manages tool lookup, schema extraction, and invocation:
+
+```typescript
+import { ToolRegistry } from 'agent-sdk';
+
+const registry = new ToolRegistry();
+registry.register(calculateTaxTool);
+
+// Extract JSON Schemas for LLM function calling declarations
+const declarations = registry.getDeclarations();
+
+// Invoke tool by name with arguments
+const result = await registry.execute('calculate_tax', { amount: 100, state: 'CA' });
+```
+
+---
+
+## ⚠️ Tool Error Types
+
+Agent SDK distinguishes between schema validation errors and runtime execution failures:
+
+- **`ValidationError`**: Thrown when arguments fail Zod schema validation before tool execution.
+- **`ExecutionError`**: Thrown when the tool's `execute` function throws an unhandled exception during execution.

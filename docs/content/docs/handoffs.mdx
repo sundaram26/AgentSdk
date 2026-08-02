@@ -1,0 +1,43 @@
+---
+title: Multi-Agent Handoffs
+description: Orchestrate multi-agent workflows with context-preserving sub-agent handoffs.
+---
+
+# Multi-Agent Handoffs
+
+Complex agentic applications benefit from specialized sub-agents. Agent SDK enables seamless, context-preserving handoffs between parent router agents and specialist sub-agents.
+
+---
+
+## 🔄 How Handoffs Work
+
+1. Register specialist agents using `.subAgent(name, agent)`.
+2. Agent SDK automatically injects the `handoff_to_agent` tool into the parent agent.
+3. When invoked, conversation context and parameters transfer to the sub-agent.
+
+---
+
+## 💻 Code Example
+
+```typescript
+import { createAgent, OpenAIAdapter } from 'agent-sdk';
+
+// 1. Define Specialist Billing Agent
+const billingAgent = createAgent()
+  .name('BillingAgent')
+  .instructions('Handle refunds and subscription inquiries.')
+  .llm(new OpenAIAdapter())
+  .build();
+
+// 2. Define Primary Support Agent
+const supportAgent = createAgent()
+  .name('SupportAgent')
+  .instructions('Triage customer support requests. Delegate billing queries to BillingAgent.')
+  .llm(new OpenAIAdapter())
+  .subAgent('BillingAgent', billingAgent) // Register sub-agent
+  .build();
+
+// 3. Execute prompt on SupportAgent
+const result = await supportAgent.run('I need help refunding my latest transaction #TX-1042.');
+console.log(result.output);
+```

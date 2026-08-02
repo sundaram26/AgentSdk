@@ -1,0 +1,50 @@
+---
+title: Structured Output & Self-Repair Engine
+description: Guarantee valid Zod schema outputs with automated correction prompts and retries.
+---
+
+# Structured Output & Self-Repair Engine
+
+When building production applications, unstructured text responses are often insufficient. Agent SDK allows you to bind a **Zod schema** directly to the agent's output.
+
+---
+
+## 🛠️ Schema Binding & Type Inference
+
+Bind a schema via `.outputSchema()`:
+
+```typescript
+import { createAgent, OpenAIAdapter } from 'agent-sdk';
+import { z } from 'zod';
+
+const InvoiceSchema = z.object({
+  invoiceId: z.string(),
+  amount: z.number().positive(),
+  vendor: z.string(),
+  lineItems: z.array(z.string()),
+});
+
+type Invoice = z.infer<typeof InvoiceSchema>;
+
+const agent = createAgent()
+  .instructions('Extract structured invoice details from the document.')
+  .llm(new OpenAIAdapter())
+  .outputSchema(InvoiceSchema)
+  .maxSchemaRetries(3) // Max self-repair retries
+  .build();
+
+const result = await agent.run<Invoice>('Invoice #INV-9021 for $450.00 from Acme Corp covering Web Hosting and Domain.');
+
+console.log('Structured Invoice:', result.structuredData?.invoiceId, result.structuredData?.amount);
+```
+
+---
+
+## 🔄 Self-Repair Loop Mechanics
+
+1. During the `VERIFYING` state, the agent parses the LLM output against the Zod schema.
+2. If parsing fails, Agent SDK constructs a field-level error prompt detailing exact validation failures:
+   ```bash
+   Validation error in field 'amount': Expected number, received string. Please output valid JSON matching the schema.
+   ```
+3. The run transitions back to `PLANNING` and retries automatically up to `maxSchemaRetries`.

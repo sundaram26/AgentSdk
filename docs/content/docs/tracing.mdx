@@ -1,0 +1,31 @@
+---
+title: Tracing & Observability
+description: Inspect execution spans, state transitions, tool durations, and run metrics with built-in Tracer.
+---
+
+# Tracing & Telemetry
+
+Agent SDK includes a zero-overhead `Tracer` that automatically captures structured telemetry for every run.
+
+---
+
+## 📊 Span Hierarchy
+
+Each run generates a hierarchical trace tree:
+
+- **`agent_run`** (Root Span)
+  - `state_transition` (`PLANNING` ➔ `EXECUTING`)
+  - `llm_generate` (Duration, model, prompt tokens, completion tokens)
+  - `tool_execute` (Tool name, arguments, execution duration, status)
+
+---
+
+## 💻 Accessing Trace Metrics
+
+```typescript
+const result = await agent.run('Perform data analysis');
+
+console.log('Run ID:', result.trace?.runId);
+console.log('Duration:', result.trace?.durationMs, 'ms');
+console.log('Total Spans:', result.trace?.spans.length);
+```

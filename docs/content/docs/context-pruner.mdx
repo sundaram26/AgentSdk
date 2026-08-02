@@ -1,0 +1,31 @@
+---
+title: Context Pruner & Token Budgeting
+description: Manage token context windows with sliding window pruning strategies while preserving system instructions.
+---
+
+# Context Pruner & Token Budgeting
+
+Large multi-turn conversations can exceed LLM context window limits. The `ContextPruner` ensures conversation history remains strictly within token budget limits.
+
+---
+
+## ✂️ Pruning Rules
+
+- **Pinned Messages**: System instructions and initial user goals are pinned and never pruned.
+- **Sliding Window**: Oldest intermediate messages are automatically pruned when total tokens exceed `maxContextTokens`.
+
+---
+
+## 💻 Code Example
+
+```typescript
+import { createAgent, ContextPruner } from 'agent-sdk';
+
+const pruner = new ContextPruner({
+  maxContextTokens: 4000, // Strict token budget limit
+});
+
+const agent = createAgent()
+  .contextPruner(pruner)
+  .build();
+```
