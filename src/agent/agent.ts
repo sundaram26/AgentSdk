@@ -5,6 +5,7 @@ import type { ApprovalRequest } from '../guardrails/types.js';
 import { RunEventEmitter } from '../events/RunEventEmitter.js';
 import { Tracer } from '../tracing/Tracer.js';
 import type { SutraEvent } from '../events/types.js';
+import type { Message } from '../llm/types.js';
 
 export class Agent {
     private runtime: AgentRuntime;
@@ -16,14 +17,16 @@ export class Agent {
         this.runtime = new AgentRuntime(builder.llmPort!, builder.toolRegistry);
     }
 
-    public async run<TData = unknown>(input: string): Promise<RunResult<TData>> {
+    public async run<TData = unknown>(input: string, history?: Message[]): Promise<RunResult<TData>> {
         const emitter = new RunEventEmitter();
         const tracer = new Tracer();
+
+        const messages: Message[] = history ? [...history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
 
         const context: RunContext = {
             llm: this.builderConfig.llmPort!,
             tools: this.builderConfig.toolRegistry,
-            messages: [{ role: 'user', content: input }],
+            messages,
             systemInstruction: this.builderConfig.instructionsText,
             currentTurn: 1,
             maxTurns: this.builderConfig.maxTurnsCount,
@@ -50,14 +53,16 @@ export class Agent {
         return result;
     }
 
-    public stream(input: string): AsyncIterable<SutraEvent> {
+    public stream(input: string, history?: Message[]): AsyncIterable<SutraEvent> {
         const emitter = new RunEventEmitter();
         const tracer = new Tracer();
+
+        const messages: Message[] = history ? [...history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
 
         const context: RunContext = {
             llm: this.builderConfig.llmPort!,
             tools: this.builderConfig.toolRegistry,
-            messages: [{ role: 'user', content: input }],
+            messages,
             systemInstruction: this.builderConfig.instructionsText,
             currentTurn: 1,
             maxTurns: this.builderConfig.maxTurnsCount,

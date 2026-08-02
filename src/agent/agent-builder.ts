@@ -1,11 +1,13 @@
 import type { ZodTypeAny } from 'zod';
 import { Agent } from './agent.js';
 import type { LLMPort } from '../llm/LLMPort.js';
+import { FallbackChain } from '../llm/FallbackChain.js';
 import type { AnyToolCommand } from '../tools/types.js';
 import { ToolRegistry } from '../tools/ToolRegistry.js';
 import { GuardrailPipeline } from '../guardrails/GuardrailPipeline.js';
 import { ApprovalGate } from '../guardrails/ApprovalGate.js';
 import type { GuardrailRule, ToolCallPayload } from '../guardrails/types.js';
+import { HandoffManager } from '../handoff/HandoffManager.js';
 
 export class AgentBuilder {
     public instructionsText?: string | undefined;
@@ -21,11 +23,14 @@ export class AgentBuilder {
     public outputSchemaObject?: ZodTypeAny | undefined;
     public maxSchemaRetriesCount: number = 2;
 
-    // Guardrail pipelines
+    // Guardrail pipelines & Approval
     public inputPipeline: GuardrailPipeline<string> = new GuardrailPipeline<string>();
     public toolPipeline: GuardrailPipeline<ToolCallPayload> = new GuardrailPipeline<ToolCallPayload>();
     public outputPipeline: GuardrailPipeline<string> = new GuardrailPipeline<string>();
     public approvalGate: ApprovalGate = new ApprovalGate();
+
+    // Multi-Agent Handoffs
+    public handoffManager: HandoffManager = new HandoffManager();
 
     public instructions(text: string): this {
         this.instructionsText = text;
@@ -37,13 +42,22 @@ export class AgentBuilder {
         return this;
     }
 
-    public llm(llm: LLMPort): this {
-        this.llmPort = llm;
+    public llm(llm: LLMPort | LLMPort[]): this {
+        if (Array.isArray(llm)) {
+            this.llmPort = new FallbackChain(llm);
+        } else {
+            this.llmPort = llm;
+        }
         return this;
     }
 
     public tool(tool: AnyToolCommand): this {
         this.toolRegistry.register(tool);
+        return this;
+    }
+
+    public subAgent(name: string, agent: Agent): this {
+        this.handoffManager.registerAgent(name, agent);
         return this;
     }
 
@@ -96,6 +110,12 @@ export class AgentBuilder {
         if (!this.llmPort) {
             throw new Error('Agent requires an LLMPort adapter (e.g. OpenAIAdapter, ClaudeAdapter, GeminiAdapter)');
         }
+
+        // Automatically attach handoff_to_agent tool if sub-agents were registered
+        if (this.handoffManager.hasAgents()) {
+            this.toolRegistry.register(this.handoffManager.getHandoffTool());
+        }
+
         return new Agent(this);
     }
 }

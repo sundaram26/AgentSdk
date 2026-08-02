@@ -18,3 +18,14 @@ export interface LLMOptions {
 export interface AdapterOptions {
     apiKey?: string | undefined;
 }
+
+export interface FallbackAttempt {
+    provider: string;
+    error: Error;
+}
+
+export interface FallbackChainOptions {
+    maxRetriesPerAdapter?: number | undefined;
+    retryBackoffMs?: number | undefined;
+    onFallback?: ((fromProvider: string, toProvider: string, error: Error) => void) | undefined;
+}
