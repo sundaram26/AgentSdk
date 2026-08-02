@@ -1,0 +1,37 @@
+{
+  "sessionId": "user_session_2026",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What language do I prefer?"
+    },
+    {
+      "role": "assistant",
+      "content": "You prefer TypeScript!"
+    }
+  ],
+  "createdAt": "2026-08-02T15:54:43.659Z",
+  "updatedAt": "2026-08-02T15:54:43.670Z",
+  "facts": [
+    {
+      "id": "fact_1785686083659_gjbcy",
+      "fact": "User lives in San Francisco",
+      "category": "location",
+      "createdAt": "2026-08-02T15:54:43.659Z"
+    },
+    {
+      "id": "fact_1785686083661_wu6am",
+      "fact": "User prefers TypeScript",
+      "category": "preference",
+      "createdAt": "2026-08-02T15:54:43.662Z"
+    }
+  ],
+  "episodes": [
+    {
+      "id": "ep_1785686083664_cly8w",
+      "sessionId": "user_session_2026",
+      "summary": "Session 2026-08-01: Built Guardrails Engine",
+      "timestamp": "2026-08-02T15:54:43.664Z"
+    }
+  ]
+}

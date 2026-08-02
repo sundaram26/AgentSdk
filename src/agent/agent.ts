@@ -6,22 +6,32 @@ import { RunEventEmitter } from '../events/RunEventEmitter.js';
 import { Tracer } from '../tracing/Tracer.js';
 import type { SutraEvent } from '../events/types.js';
 import type { Message } from '../llm/types.js';
+import type { MemoryManager } from '../memory/MemoryManager.js';
+
+export interface AgentRunOptions {
+    sessionId?: string | undefined;
+    history?: Message[] | undefined;
+}
 
 export class Agent {
     private runtime: AgentRuntime;
     private builderConfig: AgentBuilder;
     private activeContexts = new Map<string, RunContext>();
 
+    public readonly memory: MemoryManager;
+
     constructor(builder: AgentBuilder) {
         this.builderConfig = builder;
         this.runtime = new AgentRuntime(builder.llmPort!, builder.toolRegistry);
+        this.memory = builder.memoryManager;
     }
 
-    public async run<TData = unknown>(input: string, history?: Message[]): Promise<RunResult<TData>> {
+    public async run<TData = unknown>(input: string, options?: AgentRunOptions | Message[]): Promise<RunResult<TData>> {
         const emitter = new RunEventEmitter();
         const tracer = new Tracer();
 
-        const messages: Message[] = history ? [...history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
+        const opts: AgentRunOptions = Array.isArray(options) ? { history: options } : options || {};
+        const messages: Message[] = opts.history ? [...opts.history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
 
         const context: RunContext = {
             llm: this.builderConfig.llmPort!,
@@ -42,6 +52,8 @@ export class Agent {
             maxSchemaRetries: this.builderConfig.maxSchemaRetriesCount,
             eventEmitter: emitter,
             tracer: tracer,
+            sessionId: opts.sessionId,
+            memoryManager: this.memory,
         };
 
         const result = await this.runtime.run<TData>(context);
@@ -53,11 +65,12 @@ export class Agent {
         return result;
     }
 
-    public stream(input: string, history?: Message[]): AsyncIterable<SutraEvent> {
+    public stream(input: string, options?: AgentRunOptions | Message[]): AsyncIterable<SutraEvent> {
         const emitter = new RunEventEmitter();
         const tracer = new Tracer();
 
-        const messages: Message[] = history ? [...history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
+        const opts: AgentRunOptions = Array.isArray(options) ? { history: options } : options || {};
+        const messages: Message[] = opts.history ? [...opts.history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
 
         const context: RunContext = {
             llm: this.builderConfig.llmPort!,
@@ -78,6 +91,8 @@ export class Agent {
             maxSchemaRetries: this.builderConfig.maxSchemaRetriesCount,
             eventEmitter: emitter,
             tracer: tracer,
+            sessionId: opts.sessionId,
+            memoryManager: this.memory,
         };
 
         // Start background run and store context if paused

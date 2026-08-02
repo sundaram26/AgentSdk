@@ -8,6 +8,7 @@ import type { GuardrailReport, ApprovalRequest, ToolCallPayload } from '../guard
 import type { RunEventEmitter } from '../events/RunEventEmitter.js';
 import type { Tracer } from '../tracing/Tracer.js';
 import type { Trace } from '../tracing/types.js';
+import type { MemoryManager } from '../memory/MemoryManager.js';
 
 export type RunStatus = 'PLANNING' | 'EXECUTING' | 'AWAITING_APPROVAL' | 'VERIFYING' | 'DONE' | 'FAILED';
 
@@ -50,6 +51,10 @@ export interface RunContext {
     // Events & Tracing
     eventEmitter?: RunEventEmitter | undefined;
     tracer?: Tracer | undefined;
+
+    // Memory & Session
+    sessionId?: string | undefined;
+    memoryManager?: MemoryManager | undefined;
 }
 
 export interface RunOptions {
@@ -73,6 +78,10 @@ export interface RunOptions {
     // Events & Tracing options
     eventEmitter?: RunEventEmitter | undefined;
     tracer?: Tracer | undefined;
+
+    // Memory options
+    sessionId?: string | undefined;
+    memoryManager?: MemoryManager | undefined;
 }
 
 export interface RunResult<TData = unknown> {

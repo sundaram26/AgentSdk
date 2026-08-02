@@ -35,6 +35,8 @@ export class AgentRuntime {
                 maxSchemaRetries: options.maxSchemaRetries,
                 eventEmitter: options.eventEmitter,
                 tracer: options.tracer || new Tracer(),
+                sessionId: options.sessionId,
+                memoryManager: options.memoryManager,
             };
         } else {
             context = input;
@@ -52,6 +54,10 @@ export class AgentRuntime {
         const trace = context.tracer?.endRun(stateMachine.status);
 
         if (stateMachine.status === 'DONE') {
+            if (context.memoryManager && context.sessionId) {
+                await context.memoryManager.saveRunMemory(context.sessionId, context.messages);
+            }
+
             const finalOutput = context.lastOutput || '';
             if (context.eventEmitter) {
                 context.eventEmitter.emitEvent({

@@ -17,44 +17,53 @@ export class PlanningState extends AgentState {
             );
         }
 
-        // 1. Evaluate Input Guardrails on Turn 1
-        if (context.currentTurn === 1 && context.inputPipeline) {
-            const userMsgIndex = context.messages.findIndex((m) => m.role === 'user');
-            if (userMsgIndex !== -1) {
-                const userMsg = context.messages[userMsgIndex];
-                if (userMsg) {
-                    const spanId = context.tracer?.startSpan('input_guardrail', 'guardrail', { stage: 'input' });
-                    const { content: sanitizedInput, report } = await context.inputPipeline.execute(userMsg.content);
+        // 1. Evaluate Input Guardrails and Load Memory Context on Turn 1
+        if (context.currentTurn === 1) {
+            if (context.memoryManager && context.sessionId) {
+                const memContext = await context.memoryManager.loadMemoryContext(context.sessionId);
+                if (memContext.promptContext) {
+                    context.systemInstruction = (context.systemInstruction || '') + memContext.promptContext;
+                }
+            }
 
-                    context.guardrailReports = context.guardrailReports || [];
-                    context.guardrailReports.push(report);
+            if (context.inputPipeline) {
+                const userMsgIndex = context.messages.findIndex((m) => m.role === 'user');
+                if (userMsgIndex !== -1) {
+                    const userMsg = context.messages[userMsgIndex];
+                    if (userMsg) {
+                        const spanId = context.tracer?.startSpan('input_guardrail', 'guardrail', { stage: 'input' });
+                        const { content: sanitizedInput, report } = await context.inputPipeline.execute(userMsg.content);
 
-                    if (spanId && context.tracer) {
-                        context.tracer.endSpan(spanId, undefined, { passed: report.passed });
-                    }
+                        context.guardrailReports = context.guardrailReports || [];
+                        context.guardrailReports.push(report);
 
-                    if (!report.passed) {
-                        const blockedEval = report.evaluations.find((e) => e.actionTaken === 'block');
-                        if (blockedEval) {
-                            if (context.eventEmitter) {
-                                context.eventEmitter.emitEvent({
-                                    type: 'guardrail_triggered',
-                                    payload: {
-                                        stage: 'input',
-                                        ruleName: blockedEval.ruleName,
-                                        action: blockedEval.actionTaken,
-                                        reason: blockedEval.reason,
-                                    },
-                                });
-                            }
-
-                            return new FailedState(
-                                new GuardrailError(blockedEval.ruleName, blockedEval.reason || 'Input blocked by guardrail policy')
-                            );
+                        if (spanId && context.tracer) {
+                            context.tracer.endSpan(spanId, undefined, { passed: report.passed });
                         }
-                    }
 
-                    userMsg.content = sanitizedInput;
+                        if (!report.passed) {
+                            const blockedEval = report.evaluations.find((e) => e.actionTaken === 'block');
+                            if (blockedEval) {
+                                if (context.eventEmitter) {
+                                    context.eventEmitter.emitEvent({
+                                        type: 'guardrail_triggered',
+                                        payload: {
+                                            stage: 'input',
+                                            ruleName: blockedEval.ruleName,
+                                            action: blockedEval.actionTaken,
+                                            reason: blockedEval.reason,
+                                        },
+                                    });
+                                }
+
+                                return new FailedState(
+                                    new GuardrailError(blockedEval.ruleName, blockedEval.reason || 'Input blocked by guardrail policy')
+                                );
+                            }
+                        }
+
+                        userMsg.content = sanitizedInput;
+                    }
                 }
             }
         }

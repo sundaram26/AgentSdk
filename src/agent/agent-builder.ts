@@ -8,6 +8,9 @@ import { GuardrailPipeline } from '../guardrails/GuardrailPipeline.js';
 import { ApprovalGate } from '../guardrails/ApprovalGate.js';
 import type { GuardrailRule, ToolCallPayload } from '../guardrails/types.js';
 import { HandoffManager } from '../handoff/HandoffManager.js';
+import type { MemoryStore, MemoryOptions } from '../memory/types.js';
+import { MemoryManager } from '../memory/MemoryManager.js';
+import { MemorySessionStore } from '../memory/MemorySessionStore.js';
 
 export class AgentBuilder {
     public instructionsText?: string | undefined;
@@ -31,6 +34,9 @@ export class AgentBuilder {
 
     // Multi-Agent Handoffs
     public handoffManager: HandoffManager = new HandoffManager();
+
+    // Memory Engine
+    public memoryManager: MemoryManager = new MemoryManager(new MemorySessionStore());
 
     public instructions(text: string): this {
         this.instructionsText = text;
@@ -58,6 +64,11 @@ export class AgentBuilder {
 
     public subAgent(name: string, agent: Agent): this {
         this.handoffManager.registerAgent(name, agent);
+        return this;
+    }
+
+    public memory(storeOrOptions: MemoryStore | MemoryOptions): this {
+        this.memoryManager = new MemoryManager(storeOrOptions);
         return this;
     }
 
