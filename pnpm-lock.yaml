@@ -23,6 +23,19 @@ importers:
       agent-sdk:
         specifier: workspace:*
         version: link:../packages/agent-sdk
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
+      openai:
+        specifier: ^7.3.0
+        version: 7.3.0(zod@3.25.76)
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+    devDependencies:
+      tsx:
+        specifier: ^4.23.1
+        version: 4.23.1
 
   docs: {}
 

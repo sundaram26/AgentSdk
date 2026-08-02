@@ -1,6 +1,35 @@
 {
-  "timestamp": "2026-08-02T17:19:49.831Z",
-  "trials": 5,
-  "sdkCatchRate": "100%",
-  "averageLatencyMs": 340
+  "timestamp": "2026-08-02T17:56:40.695Z",
+  "trialsCount": 5,
+  "crudGeneration": {
+    "agentSdk": {
+      "averageLatencyMs": 0,
+      "successRatePercent": 100,
+      "averageScore": 100
+    },
+    "openAiAgents": {
+      "averageLatencyMs": 448,
+      "successRatePercent": 100,
+      "averageScore": 100
+    }
+  },
+  "guardrailRedTeam": {
+    "totalAttacks": 15,
+    "caughtAttacks": 14,
+    "catchRatePercent": 93,
+    "breakdown": {
+      "prompt_injection": {
+        "total": 5,
+        "caught": 4
+      },
+      "tool_boundary": {
+        "total": 5,
+        "caught": 5
+      },
+      "pii_leak": {
+        "total": 5,
+        "caught": 5
+      }
+    }
+  }
 }

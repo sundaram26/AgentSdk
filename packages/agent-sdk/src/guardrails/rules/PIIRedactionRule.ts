@@ -14,22 +14,32 @@ export class PIIRedactionRule implements GuardrailRule<string> {
         let modified = target;
         let piiFound = false;
 
-        if (this.emailRegex.test(modified)) {
+        // Reset global regex indices before evaluation
+        this.emailRegex.lastIndex = 0;
+        this.phoneRegex.lastIndex = 0;
+        this.ssnRegex.lastIndex = 0;
+        this.creditCardRegex.lastIndex = 0;
+
+        if (this.emailRegex.test(target)) {
+            this.emailRegex.lastIndex = 0;
             modified = modified.replace(this.emailRegex, '[REDACTED EMAIL]');
             piiFound = true;
         }
 
-        if (this.phoneRegex.test(modified)) {
+        if (this.phoneRegex.test(target)) {
+            this.phoneRegex.lastIndex = 0;
             modified = modified.replace(this.phoneRegex, '[REDACTED PHONE]');
             piiFound = true;
         }
 
-        if (this.ssnRegex.test(modified)) {
+        if (this.ssnRegex.test(target)) {
+            this.ssnRegex.lastIndex = 0;
             modified = modified.replace(this.ssnRegex, '[REDACTED SSN]');
             piiFound = true;
         }
 
-        if (this.creditCardRegex.test(modified)) {
+        if (this.creditCardRegex.test(target)) {
+            this.creditCardRegex.lastIndex = 0;
             modified = modified.replace(this.creditCardRegex, '[REDACTED CREDIT CARD]');
             piiFound = true;
         }

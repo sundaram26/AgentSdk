@@ -13,6 +13,9 @@ export class PromptInjectionRule implements GuardrailRule<string> {
     private patterns: RegExp[] = [
         /ignore\s+(all\s+)?(previous|prior)\s+instructions/i,
         /system\s+override/i,
+        /forget.*(system\s+)?prompt/i,
+        /dan\s+mode/i,
+        /uncensored\s*ai/i,
         /you\s+are\s+now\s+in\s+dan\s+mode/i,
         /jailbreak/i,
         /disregard\s+safety\s+guidelines/i,
