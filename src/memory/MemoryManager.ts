@@ -3,20 +3,34 @@ import type { Message } from '../llm/types.js';
 import type { LLMPort } from '../llm/LLMPort.js';
 import { MemorySessionStore } from './MemorySessionStore.js';
 
+function isMemoryStore(value: MemoryOptions | MemoryStore): value is MemoryStore {
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        typeof (value as MemoryStore).getSession === 'function' &&
+        typeof (value as MemoryStore).saveSession === 'function' &&
+        typeof (value as MemoryStore).addFact === 'function'
+    );
+}
+
 export class MemoryManager {
     public readonly store: MemoryStore;
     private llmPort?: LLMPort | undefined;
+    private llmModel?: string | undefined;
     private autoExtractFacts: boolean;
     private autoSummarizeEpisodes: boolean;
 
     constructor(options?: MemoryOptions | MemoryStore) {
-        if (options && 'getSession' in options) {
+        if (options && isMemoryStore(options)) {
+            // Developer passed a MemoryStore directly
             this.store = options;
             this.autoExtractFacts = false;
             this.autoSummarizeEpisodes = false;
         } else {
+            // Developer passed MemoryOptions
             this.store = options?.store || new MemorySessionStore();
             this.llmPort = options?.llm;
+            this.llmModel = options?.llmModel;
             this.autoExtractFacts = options?.autoExtractFacts ?? false;
             this.autoSummarizeEpisodes = options?.autoSummarizeEpisodes ?? false;
         }
@@ -71,14 +85,14 @@ export class MemoryManager {
             }
         }
 
-        // Automated episode summarization if turn count > 6
+        // Automated episode summarization if turn count >= 6
         if (this.autoSummarizeEpisodes && this.llmPort && messages.length >= 6) {
             await this.summarizeEpisodeWithLLM(sessionId, messages);
         }
     }
 
     public async extractFactsWithLLM(sessionId: string, text: string): Promise<Fact[]> {
-        if (!this.llmPort) return [];
+        if (!this.llmPort || !this.llmModel) return [];
 
         try {
             const response = await this.llmPort.generate(
@@ -89,7 +103,7 @@ export class MemoryManager {
                     },
                     { role: 'user', content: text },
                 ],
-                { model: 'gpt-4o' }
+                { model: this.llmModel }
             );
 
             if (!response.text || response.text.includes('NONE')) return [];
@@ -112,7 +126,7 @@ export class MemoryManager {
     }
 
     public async summarizeEpisodeWithLLM(sessionId: string, messages: Message[]): Promise<Episode | null> {
-        if (!this.llmPort) return null;
+        if (!this.llmPort || !this.llmModel) return null;
 
         try {
             const chatText = messages.map((m) => `${m.role}: ${m.content}`).join('\n');
@@ -124,7 +138,7 @@ export class MemoryManager {
                     },
                     { role: 'user', content: chatText },
                 ],
-                { model: 'gpt-4o' }
+                { model: this.llmModel }
             );
 
             if (!response.text) return null;

@@ -1,12 +1,14 @@
 import { AgentState } from './states/State.js';
-import { PlanningState } from './states/PlanningState.js';
+import { StateFactory, defaultStateFactory } from './states/StateFactory.js';
 import type { RunContext, RunStatus } from './types.js';
 
 export class RunStateMachine {
     private currentState: AgentState;
+    private readonly factory: StateFactory;
 
-    constructor(initialState?: AgentState) {
-        this.currentState = initialState || new PlanningState();
+    constructor(initialState?: AgentState, factory?: StateFactory) {
+        this.factory = factory ?? defaultStateFactory;
+        this.currentState = initialState ?? this.factory.create('PLANNING');
     }
 
     public get status(): RunStatus {
@@ -21,6 +23,9 @@ export class RunStateMachine {
         if (this.isTerminal) {
             return this.currentState;
         }
+
+        // Ensure every state has access to the factory via context
+        context.stateFactory = context.stateFactory ?? this.factory;
 
         const prevStatus = this.status;
         const spanId = context.tracer?.startSpan(`state_${prevStatus}`, 'state', { from: prevStatus });

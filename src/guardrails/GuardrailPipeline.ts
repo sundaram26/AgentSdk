@@ -2,6 +2,8 @@ import type { GuardrailRule, GuardrailReport, GuardrailEvaluation } from './type
 
 export class GuardrailPipeline<T = unknown> {
     private rules: GuardrailRule<T>[] = [];
+    // Cache keyed by serialized input — avoids re-evaluating expensive LLM rules on reask
+    private readonly cache = new Map<string, GuardrailEvaluation<T>>();
 
     public addRule(rule: GuardrailRule<T>): this {
         this.rules.push(rule);
@@ -12,6 +14,10 @@ export class GuardrailPipeline<T = unknown> {
         return [...this.rules];
     }
 
+    public clearCache(): void {
+        this.cache.clear();
+    }
+
     public async execute(target: T): Promise<{ content: T; report: GuardrailReport }> {
         const startTime = Date.now();
         const evaluations: GuardrailEvaluation<T>[] = [];
@@ -19,7 +25,22 @@ export class GuardrailPipeline<T = unknown> {
         let overallPassed = true;
 
         for (const rule of this.rules) {
-            const evalResult = await rule.evaluate(currentContent);
+            // Build cache key only when rule explicitly opts-in to caching
+            const cacheKey = rule.cacheable
+                ? `${rule.name}::${JSON.stringify(currentContent)}`
+                : undefined;
+
+            let evalResult: GuardrailEvaluation<T>;
+
+            if (cacheKey && this.cache.has(cacheKey)) {
+                evalResult = this.cache.get(cacheKey)!;
+            } else {
+                evalResult = await rule.evaluate(currentContent);
+                if (cacheKey) {
+                    this.cache.set(cacheKey, evalResult);
+                }
+            }
+
             evaluations.push(evalResult);
 
             if (!evalResult.passed) {

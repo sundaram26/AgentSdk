@@ -59,15 +59,17 @@ export class FallbackChain implements LLMPort {
 
             for (let attempt = 0; attempt < this.maxRetriesPerAdapter; attempt++) {
                 try {
-                    let emitted = false;
+                    let emittedContent = false;
                     const iterator = adapter.stream(messages, options);
 
                     for await (const chunk of iterator) {
-                        emitted = true;
                         yield chunk;
+                        if (chunk.length > 0) {
+                            emittedContent = true;
+                        }
                     }
 
-                    if (emitted) {
+                    if (emittedContent) {
                         return;
                     }
                 } catch (err) {

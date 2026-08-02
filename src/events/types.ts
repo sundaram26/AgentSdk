@@ -1,6 +1,6 @@
 import type { RunStatus } from '../runtime/types.js';
 
-export type SutraEventType =
+export type AgentEventType =
     | 'text_delta'
     | 'tool_started'
     | 'tool_completed'
@@ -46,7 +46,7 @@ export interface RunFailedPayload {
     error: Error;
 }
 
-export type SutraEvent =
+export type AgentEvent =
     | { type: 'text_delta'; payload: TextDeltaPayload }
     | { type: 'tool_started'; payload: ToolStartedPayload }
     | { type: 'tool_completed'; payload: ToolCompletedPayload }

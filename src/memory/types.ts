@@ -63,6 +63,8 @@ export interface MemoryStore {
 export interface MemoryOptions {
     store?: MemoryStore | undefined;
     llm?: LLMPort | undefined;
+    /** The model name the memory LLM adapter should use for fact extraction and episode summarization. Required when `llm` is set. */
+    llmModel?: string | undefined;
     autoExtractFacts?: boolean | undefined;
     autoSummarizeEpisodes?: boolean | undefined;
 }

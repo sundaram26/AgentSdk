@@ -1,20 +1,19 @@
 import { AgentState } from './State.js';
-import { ExecutingState } from './ExecutingState.js';
-import { VerifyingState } from './VerifyingState.js';
-import { FailedState } from './FailedState.js';
+import { defaultStateFactory } from './StateFactory.js';
 import { GuardrailError } from '../../guardrails/GuardrailError.js';
 import type { RunContext, RunStatus, ToolCallInfo } from '../types.js';
 import type { Message } from '../../llm/types.js';
+import { ContextPruner } from '../../context/ContextPruner.js';
 
 export class PlanningState extends AgentState {
     public readonly status: RunStatus = 'PLANNING';
 
     public async execute(context: RunContext): Promise<AgentState> {
+        const factory = context.stateFactory ?? defaultStateFactory;
+
         // Enforce max turns guard before generating
         if (context.currentTurn > context.maxTurns) {
-            return new FailedState(
-                new Error(`Run exceeded maximum turn limit of ${context.maxTurns}`)
-            );
+            return factory.create('FAILED', new Error(`Run exceeded maximum turn limit of ${context.maxTurns}`));
         }
 
         // 1. Evaluate Input Guardrails and Load Memory Context on Turn 1
@@ -55,8 +54,8 @@ export class PlanningState extends AgentState {
                                         },
                                     });
                                 }
-
-                                return new FailedState(
+                                return factory.create(
+                                    'FAILED',
                                     new GuardrailError(blockedEval.ruleName, blockedEval.reason || 'Input blocked by guardrail policy')
                                 );
                             }
@@ -70,17 +69,27 @@ export class PlanningState extends AgentState {
 
         try {
             // Build model prompt messages with system prompt and available tools
-            const messagesToSubmit = this.buildPromptMessages(context);
+            let messagesToSubmit = this.buildPromptMessages(context);
+
+            // Apply Context Pruning & Token Budgeting if configured
+            const pruner = context.contextPruner || (context.maxContextTokens ? new ContextPruner({ maxContextTokens: context.maxContextTokens }) : undefined);
+            if (pruner) {
+                const pruneResult = pruner.prune(messagesToSubmit);
+                messagesToSubmit = pruneResult.messages;
+            }
 
             const llmSpanId = context.tracer?.startSpan(`llm_generate_turn_${context.currentTurn}`, 'llm', {
                 model: context.model,
                 provider: context.llm.providerName,
             });
 
+            const registeredTools = context.tools.getAll();
+
             const response = await context.llm.generate(messagesToSubmit, {
                 model: context.model,
                 temperature: context.temperature,
                 maxTokens: context.maxTokens,
+                tools: registeredTools.length > 0 ? registeredTools : undefined,
             });
 
             if (llmSpanId && context.tracer) {
@@ -101,19 +110,23 @@ export class PlanningState extends AgentState {
                 content: response.text,
             });
 
-            // Check if response contains a tool call
-            const toolCall = this.parseToolCall(response.text, context);
-            if (toolCall) {
-                context.pendingToolCalls = [toolCall];
-                return new ExecutingState();
+            // 1. Primary path: Native provider tool call detection (OpenAI tool_calls, Claude tool_use, Gemini functionCall)
+            if (response.toolCalls && response.toolCalls.length > 0) {
+                context.pendingToolCalls = response.toolCalls;
+                return factory.create('EXECUTING');
+            }
+
+            // 2. Secondary path: Multi-strategy text parsing fallback for prompt-only LLMs
+            const textToolCall = this.parseToolCall(response.text, context);
+            if (textToolCall) {
+                context.pendingToolCalls = [textToolCall];
+                return factory.create('EXECUTING');
             }
 
             // No tool call -> transition to VerifyingState with final answer
-            return new VerifyingState(response.text);
+            return factory.create('VERIFYING', response.text);
         } catch (error) {
-            return new FailedState(
-                error instanceof Error ? error : new Error(String(error))
-            );
+            return factory.create('FAILED', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
@@ -151,25 +164,43 @@ export class PlanningState extends AgentState {
     }
 
     private parseToolCall(text: string, context: RunContext): ToolCallInfo | null {
-        try {
-            const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/(\{[\s\S]*"tool"[\s\S]*\})/);
-            if (!jsonMatch) return null;
+        const candidates: string[] = [];
 
-            const jsonStr = jsonMatch[1] || jsonMatch[0];
-            if (!jsonStr) return null;
+        // Strategy 1: ```json ... ``` fenced code block
+        const fencedMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+        if (fencedMatch?.[1]) candidates.push(fencedMatch[1].trim());
 
-            const parsed = JSON.parse(jsonStr.trim());
+        // Strategy 2: ``` ... ``` unfenced code block
+        const unfencedMatch = text.match(/```\s*([\s\S]*?)\s*```/);
+        if (unfencedMatch?.[1]) candidates.push(unfencedMatch[1].trim());
 
-            if (parsed && typeof parsed.tool === 'string' && context.tools.has(parsed.tool)) {
-                return {
-                    id: `call_${Date.now()}`,
-                    name: parsed.tool,
-                    arguments: (typeof parsed.arguments === 'object' && parsed.arguments !== null) ? parsed.arguments : {},
-                };
+        // Strategy 3: first complete JSON object in the raw text
+        const rawJsonMatch = text.match(/\{[\s\S]*"tool"[\s\S]*\}/);
+        if (rawJsonMatch?.[0]) candidates.push(rawJsonMatch[0].trim());
+
+        for (const candidate of candidates) {
+            try {
+                const parsed = JSON.parse(candidate);
+                if (
+                    parsed &&
+                    typeof parsed === 'object' &&
+                    typeof parsed.tool === 'string' &&
+                    parsed.tool.length > 0 &&
+                    context.tools.has(parsed.tool)
+                ) {
+                    return {
+                        id: `call_${Date.now()}`,
+                        name: parsed.tool,
+                        arguments: (typeof parsed.arguments === 'object' && parsed.arguments !== null && !Array.isArray(parsed.arguments))
+                            ? parsed.arguments
+                            : {},
+                    };
+                }
+            } catch {
+                // Try next candidate
             }
-        } catch {
-            // Ignore JSON parsing errors
         }
+
         return null;
     }
 }

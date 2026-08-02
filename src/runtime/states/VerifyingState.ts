@@ -1,7 +1,5 @@
 import { AgentState } from './State.js';
-import { DoneState } from './DoneState.js';
-import { FailedState } from './FailedState.js';
-import { PlanningState } from './PlanningState.js';
+import { defaultStateFactory } from './StateFactory.js';
 import { GuardrailError } from '../../guardrails/GuardrailError.js';
 import { StructuredOutputValidator } from '../../structured/StructuredOutputValidator.js';
 import { StructuredOutputError } from '../../structured/StructuredOutputError.js';
@@ -15,6 +13,7 @@ export class VerifyingState extends AgentState {
     }
 
     public async execute(context: RunContext): Promise<AgentState> {
+        const factory = context.stateFactory ?? defaultStateFactory;
         let finalOutput = this.rawOutput;
 
         // 1. Evaluate Output Guardrails
@@ -37,10 +36,11 @@ export class VerifyingState extends AgentState {
                             role: 'system',
                             content: `[Guardrail Correction Request]: Your previous response failed output guardrail '${reaskEval.ruleName}': ${reaskEval.reason || 'Invalid response'}. Please correct your output and try again.`,
                         });
-                        return new PlanningState();
+                        return factory.create('PLANNING');
                     }
 
-                    return new FailedState(
+                    return factory.create(
+                        'FAILED',
                         new GuardrailError(reaskEval.ruleName, `Max re-ask attempts (${maxReasks}) exceeded for rule '${reaskEval.ruleName}': ${reaskEval.reason}`)
                     );
                 }
@@ -48,7 +48,8 @@ export class VerifyingState extends AgentState {
                 // Check if any rule requested a block
                 const blockEval = report.evaluations.find((e) => e.actionTaken === 'block');
                 if (blockEval) {
-                    return new FailedState(
+                    return factory.create(
+                        'FAILED',
                         new GuardrailError(blockEval.ruleName, blockEval.reason || 'Output blocked by guardrail policy')
                     );
                 }
@@ -72,27 +73,25 @@ export class VerifyingState extends AgentState {
                         role: 'system',
                         content: valResult.formattedPrompt || 'Output failed schema validation. Please format response strictly as valid JSON matching schema.',
                     });
-                    return new PlanningState();
+                    return factory.create('PLANNING');
                 }
 
-                return new FailedState(
-                    new StructuredOutputError(finalOutput, valResult.issues)
-                );
+                return factory.create('FAILED', new StructuredOutputError(finalOutput, valResult.issues));
             }
 
             // Structured validation succeeded - store parsed structuredData
             context.structuredData = valResult.data;
-            context.lastOutput = typeof valResult.data === 'string' 
-                ? valResult.data 
+            context.lastOutput = typeof valResult.data === 'string'
+                ? valResult.data
                 : JSON.stringify(valResult.data, null, 2);
 
-            return new DoneState();
+            return factory.create('DONE');
         }
 
         // Store final verified plain output
         context.lastOutput = finalOutput;
 
         // Transition to DONE state
-        return new DoneState();
+        return factory.create('DONE');
     }
 }

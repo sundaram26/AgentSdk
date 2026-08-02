@@ -37,6 +37,8 @@ export class AgentRuntime {
                 tracer: options.tracer || new Tracer(),
                 sessionId: options.sessionId,
                 memoryManager: options.memoryManager,
+                maxContextTokens: options.maxContextTokens,
+                contextPruner: options.contextPruner,
             };
         } else {
             context = input;
@@ -45,7 +47,7 @@ export class AgentRuntime {
             }
         }
 
-        const stateMachine = new RunStateMachine();
+        const stateMachine = new RunStateMachine(undefined, context.stateFactory);
 
         while (!stateMachine.isTerminal && stateMachine.status !== 'AWAITING_APPROVAL') {
             await stateMachine.step(context);

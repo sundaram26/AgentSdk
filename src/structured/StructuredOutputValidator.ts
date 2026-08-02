@@ -26,15 +26,21 @@ export class StructuredOutputValidator<TSchema extends ZodTypeAny = ZodTypeAny> 
                 };
             }
 
+            // Build a plain-English, field-level error description for the LLM to self-repair
             const formattedIssues = result.error.issues
-                .map((issue) => `- Property '${issue.path.join('.')}': ${issue.message}`)
+                .map((issue) => {
+                    const field = issue.path.length > 0 ? `'${issue.path.join('.')}'` : '(root)';
+                    const expected = 'expected' in issue ? ` (expected: ${issue.expected})` : '';
+                    const received = 'received' in issue ? `, received: ${issue.received}` : '';
+                    return `- Field ${field}: ${issue.message}${expected}${received}`;
+                })
                 .join('\n');
 
             return {
                 success: false,
                 error: `Schema validation failed: ${result.error.message}`,
                 issues: result.error.issues,
-                formattedPrompt: `[Structured Output Validation Error]: Your response failed schema validation:\n${formattedIssues}\n\nPlease respond strictly with a valid JSON object matching the schema.`,
+                formattedPrompt: `[Structured Output Validation Error]: Your JSON response failed schema validation with ${result.error.issues.length} issue(s):\n\n${formattedIssues}\n\nPlease correct ONLY the fields listed above and respond with a complete valid JSON object.`,
             };
         } catch (err) {
             return {

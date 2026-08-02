@@ -3,6 +3,7 @@ import type { Agent } from '../agent/agent.js';
 import type { AnyToolCommand } from '../tools/types.js';
 import { createTool } from '../tools/ToolCommand.js';
 import type { HandoffPayload, HandoffToolInput } from './types.js';
+import { HANDOFF_TOOL_NAME } from './types.js';
 import type { RunResult } from '../runtime/types.js';
 import type { Message } from '../llm/types.js';
 
@@ -10,6 +11,12 @@ export class HandoffManager {
     private agents = new Map<string, Agent>();
 
     public registerAgent(name: string, agent: Agent): void {
+        if (name === HANDOFF_TOOL_NAME) {
+            throw new Error(
+                `Cannot register a sub-agent with the reserved name '${HANDOFF_TOOL_NAME}'. ` +
+                `This name is reserved for the internal handoff tool.`
+            );
+        }
         this.agents.set(name, agent);
     }
 
@@ -30,7 +37,7 @@ export class HandoffManager {
         const description = `Transfers the conversation execution to a specialized target agent. Available target agents: ${availableAgents.map((a) => `'${a}'`).join(', ')}`;
 
         return createTool({
-            name: 'handoff_to_agent',
+            name: HANDOFF_TOOL_NAME,
             description,
             inputSchema: z.object({
                 targetAgent: z.string().describe('Name of the target sub-agent to transfer execution to'),

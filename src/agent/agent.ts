@@ -4,13 +4,14 @@ import type { RunContext, RunResult } from '../runtime/types.js';
 import type { ApprovalRequest } from '../guardrails/types.js';
 import { RunEventEmitter } from '../events/RunEventEmitter.js';
 import { Tracer } from '../tracing/Tracer.js';
-import type { SutraEvent } from '../events/types.js';
+import type { AgentEvent } from '../events/types.js';
 import type { Message } from '../llm/types.js';
 import type { MemoryManager } from '../memory/MemoryManager.js';
 
 export interface AgentRunOptions {
     sessionId?: string | undefined;
     history?: Message[] | undefined;
+    maxEventBufferSize?: number | undefined;
 }
 
 export class Agent {
@@ -26,11 +27,32 @@ export class Agent {
         this.memory = builder.memoryManager;
     }
 
-    public async run<TData = unknown>(input: string, options?: AgentRunOptions | Message[]): Promise<RunResult<TData>> {
-        const emitter = new RunEventEmitter();
-        const tracer = new Tracer();
+    private setupEmitter(emitter: RunEventEmitter): void {
+        // Attach global builder event handlers
+        for (const handler of this.builderConfig.globalEventHandlers) {
+            emitter.on('event', handler);
+        }
 
+        // Attach visual debug logger if developer enabled .debug()
+        if (this.builderConfig.debugLogger) {
+            const logger = this.builderConfig.debugLogger;
+            emitter.onStateChanged((p) => logger(`State: ${p.from} ➔ ${p.to}`));
+            emitter.onToolStarted((p) => logger(`Tool Start: ${p.toolName} (args: ${JSON.stringify(p.args)})`));
+            emitter.onToolCompleted((p) => logger(`Tool Complete: ${p.toolName} (${p.durationMs}ms, success: ${p.success})`));
+            emitter.onGuardrailTriggered((p) => logger(`Guardrail Triggered: stage=${p.stage} rule=${p.ruleName} action=${p.action}`));
+            emitter.onRunCompleted((p) => logger(`Run Completed (${p.turns} turns)`));
+            emitter.onRunFailed((p) => logger(`Run Failed: ${p.error.message}`));
+        }
+    }
+
+    public async run<TData = unknown>(input: string, options?: AgentRunOptions | Message[]): Promise<RunResult<TData>> {
         const opts: AgentRunOptions = Array.isArray(options) ? { history: options } : options || {};
+        const emitter = new RunEventEmitter({
+            maxBufferSize: opts.maxEventBufferSize ?? this.builderConfig.eventBufferLimitValue,
+        });
+        this.setupEmitter(emitter);
+
+        const tracer = new Tracer();
         const messages: Message[] = opts.history ? [...opts.history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
 
         const context: RunContext = {
@@ -54,6 +76,9 @@ export class Agent {
             tracer: tracer,
             sessionId: opts.sessionId,
             memoryManager: this.memory,
+            maxContextTokens: this.builderConfig.maxContextTokensValue,
+            contextPruner: this.builderConfig.contextPrunerInstance,
+            stateFactory: this.builderConfig.stateFactoryInstance,
         };
 
         const result = await this.runtime.run<TData>(context);
@@ -65,11 +90,14 @@ export class Agent {
         return result;
     }
 
-    public stream(input: string, options?: AgentRunOptions | Message[]): AsyncIterable<SutraEvent> {
-        const emitter = new RunEventEmitter();
-        const tracer = new Tracer();
-
+    public stream(input: string, options?: AgentRunOptions | Message[]): AsyncIterable<AgentEvent> {
         const opts: AgentRunOptions = Array.isArray(options) ? { history: options } : options || {};
+        const emitter = new RunEventEmitter({
+            maxBufferSize: opts.maxEventBufferSize ?? this.builderConfig.eventBufferLimitValue,
+        });
+        this.setupEmitter(emitter);
+
+        const tracer = new Tracer();
         const messages: Message[] = opts.history ? [...opts.history, { role: 'user', content: input }] : [{ role: 'user', content: input }];
 
         const context: RunContext = {
@@ -93,6 +121,9 @@ export class Agent {
             tracer: tracer,
             sessionId: opts.sessionId,
             memoryManager: this.memory,
+            maxContextTokens: this.builderConfig.maxContextTokensValue,
+            contextPruner: this.builderConfig.contextPrunerInstance,
+            stateFactory: this.builderConfig.stateFactoryInstance,
         };
 
         // Start background run and store context if paused

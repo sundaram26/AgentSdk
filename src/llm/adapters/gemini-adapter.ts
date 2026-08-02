@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ModelParams, GenerationConfig, GenerateContentRequest, Content } from '@google/generative-ai';
 import type { LLMPort } from '../LLMPort.js';
-import type { Message, LLMOptions, LLMResponse, AdapterOptions } from '../types.js';
+import type { Message, LLMOptions, LLMResponse, AdapterOptions, ToolCallInfo } from '../types.js';
 
 export class GeminiAdapter implements LLMPort {
     public readonly providerName = 'gemini';
@@ -33,6 +33,17 @@ export class GeminiAdapter implements LLMPort {
         
         const modelParams: ModelParams = { model: options.model };
         if (systemInstruction !== undefined) modelParams.systemInstruction = systemInstruction;
+
+        if (options.tools && options.tools.length > 0) {
+            modelParams.tools = [{
+                functionDeclarations: options.tools.map((t) => ({
+                    name: t.name,
+                    description: t.description,
+                    parameters: (t.inputSchema as unknown as Record<string, unknown>) || {},
+                })),
+            }];
+        }
+
         const model = this.client.getGenerativeModel(modelParams);
 
         const generationConfig: GenerationConfig = {};
@@ -45,9 +56,34 @@ export class GeminiAdapter implements LLMPort {
         }
 
         const result = await model.generateContent(request);
+        const responseObj = result.response;
 
-        const text = result.response.text();
-        return { text };
+        const toolCalls: ToolCallInfo[] = [];
+        const candidates = responseObj.candidates;
+
+        if (candidates && candidates[0]?.content?.parts) {
+            for (const part of candidates[0].content.parts) {
+                if (part.functionCall) {
+                    toolCalls.push({
+                        id: `gemini_call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                        name: part.functionCall.name,
+                        arguments: (part.functionCall.args as Record<string, unknown>) || {},
+                    });
+                }
+            }
+        }
+
+        let text = '';
+        try {
+            text = responseObj.text();
+        } catch {
+            // Text may be empty if response only contains function calls
+        }
+
+        return {
+            text,
+            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        };
     }
 
     async *stream(messages: Message[], options: LLMOptions): AsyncIterable<string> {
@@ -69,7 +105,12 @@ export class GeminiAdapter implements LLMPort {
         const result = await model.generateContentStream(request);
 
         for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
+            let chunkText = '';
+            try {
+                chunkText = chunk.text();
+            } catch {
+                // Ignore functionCall chunks in text streaming
+            }
             if (chunkText) {
                 yield chunkText;
             }

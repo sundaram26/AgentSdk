@@ -11,6 +11,8 @@ export class LLMClassifierRule implements GuardrailRule<string> {
     public readonly name: string;
     public readonly stage: GuardrailStage;
     public readonly onFail: 'block' | 'fix' | 'reask' | 'pause';
+    /** Cache LLM evaluation results to avoid redundant API calls on reask retries. */
+    public readonly cacheable = true;
 
     private llmPort?: LLMPort | undefined;
     private modelName: string;

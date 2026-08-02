@@ -23,6 +23,8 @@ export interface GuardrailRule<T = unknown> {
     readonly name: string;
     readonly stage: GuardrailStage;
     readonly onFail: 'block' | 'fix' | 'reask' | 'pause';
+    /** When true, GuardrailPipeline caches evaluation results keyed by rule name + serialized input. Opt-in for expensive LLM-backed rules. */
+    readonly cacheable?: boolean | undefined;
     evaluate(target: T): Promise<GuardrailEvaluation<T>>;
 }
 

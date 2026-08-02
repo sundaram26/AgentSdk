@@ -1,3 +1,5 @@
+import type { AnyToolCommand } from '../tools/types.js';
+
 export type Role = 'user' | 'assistant' | 'system';
 
 export interface Message {
@@ -5,14 +7,22 @@ export interface Message {
     content: string;
 }
 
+export interface ToolCallInfo {
+    id: string;
+    name: string;
+    arguments: Record<string, unknown>;
+}
+
 export interface LLMResponse {
     text: string;
+    toolCalls?: ToolCallInfo[] | undefined;
 }
 
 export interface LLMOptions {
     model: string;
     temperature?: number | undefined;
     maxTokens?: number | undefined;
+    tools?: AnyToolCommand[] | undefined;
 }
 
 export interface AdapterOptions {

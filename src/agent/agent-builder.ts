@@ -2,7 +2,8 @@ import type { ZodTypeAny } from 'zod';
 import { Agent } from './agent.js';
 import type { LLMPort } from '../llm/LLMPort.js';
 import { FallbackChain } from '../llm/FallbackChain.js';
-import type { AnyToolCommand } from '../tools/types.js';
+import type { AnyToolCommand, ToolConfig } from '../tools/types.js';
+import { createTool } from '../tools/ToolCommand.js';
 import { ToolRegistry } from '../tools/ToolRegistry.js';
 import { GuardrailPipeline } from '../guardrails/GuardrailPipeline.js';
 import { ApprovalGate } from '../guardrails/ApprovalGate.js';
@@ -11,8 +12,16 @@ import { HandoffManager } from '../handoff/HandoffManager.js';
 import type { MemoryStore, MemoryOptions } from '../memory/types.js';
 import { MemoryManager } from '../memory/MemoryManager.js';
 import { MemorySessionStore } from '../memory/MemorySessionStore.js';
+import { ContextPruner } from '../context/ContextPruner.js';
+import { StateFactory } from '../runtime/states/StateFactory.js';
+import type { RunStatus } from '../runtime/types.js';
+import type { AgentEvent } from '../events/types.js';
+import { getSdkName } from '../config.js';
+
+export type LoggerFunction = (message: string) => void;
 
 export class AgentBuilder {
+    public sdkNameValue?: string | undefined;
     public instructionsText?: string | undefined;
     public modelName: string = 'gpt-4o';
     public llmPort?: LLMPort | undefined;
@@ -38,6 +47,29 @@ export class AgentBuilder {
     // Memory Engine
     public memoryManager: MemoryManager = new MemoryManager(new MemorySessionStore());
 
+    // Context Pruning & Token Budgeting
+    public maxContextTokensValue?: number | undefined;
+    public contextPrunerInstance?: ContextPruner | undefined;
+
+    // Custom State Factory
+    public stateFactoryInstance?: StateFactory | undefined;
+
+    // Event Stream Queue Configuration
+    public eventBufferLimitValue?: number | undefined;
+
+    // Developer DX Extensions
+    public debugLogger?: LoggerFunction | undefined;
+    public globalEventHandlers: Array<(event: AgentEvent) => void> = [];
+
+    /**
+     * Set the custom branding name for your SDK.
+     * Can also be set globally via .env using `SDK_NAME` or `AGENT_SDK_NAME`.
+     */
+    public name(sdkName: string): this {
+        this.sdkNameValue = sdkName;
+        return this;
+    }
+
     public instructions(text: string): this {
         this.instructionsText = text;
         return this;
@@ -57,8 +89,17 @@ export class AgentBuilder {
         return this;
     }
 
-    public tool(tool: AnyToolCommand): this {
-        this.toolRegistry.register(tool);
+    /**
+     * Register a tool with the agent. Accepts either a `ToolCommand` object
+     * or a raw `ToolConfig` definition directly (calling `createTool` automatically).
+     */
+    public tool(toolOrConfig: AnyToolCommand | ToolConfig): this {
+        if ('inputSchema' in toolOrConfig && 'execute' in toolOrConfig) {
+            const command = ('name' in toolOrConfig && typeof (toolOrConfig as AnyToolCommand).name === 'string')
+                ? (toolOrConfig as AnyToolCommand)
+                : createTool(toolOrConfig as ToolConfig);
+            this.toolRegistry.register(command);
+        }
         return this;
     }
 
@@ -69,6 +110,63 @@ export class AgentBuilder {
 
     public memory(storeOrOptions: MemoryStore | MemoryOptions): this {
         this.memoryManager = new MemoryManager(storeOrOptions);
+        return this;
+    }
+
+    public maxContextTokens(tokens: number): this {
+        this.maxContextTokensValue = tokens;
+        return this;
+    }
+
+    public contextPruner(pruner: ContextPruner): this {
+        this.contextPrunerInstance = pruner;
+        return this;
+    }
+
+    /**
+     * Enable built-in visual debug logging or supply a custom logging function.
+     * Logs state transitions, tool execution details, guardrail triggers, and completions.
+     * Uses your configured SDK name from `.env` or `.name()`.
+     *
+     * @example
+     * agent.debug(true); // Logs formatted output to console.log
+     * agent.debug((msg) => myLogger.info(msg)); // Custom logger
+     */
+    public debug(enabledOrLogger: boolean | LoggerFunction): this {
+        if (typeof enabledOrLogger === 'function') {
+            this.debugLogger = enabledOrLogger;
+        } else if (enabledOrLogger) {
+            const resolvedName = getSdkName(this.sdkNameValue);
+            this.debugLogger = (msg: string) => console.log(`[${resolvedName} Debug] ${msg}`);
+        } else {
+            this.debugLogger = undefined;
+        }
+        return this;
+    }
+
+    /**
+     * Register a global event listener that triggers on every event produced during agent runs.
+     */
+    public onEvent(handler: (event: AgentEvent) => void): this {
+        this.globalEventHandlers.push(handler);
+        return this;
+    }
+
+    /**
+     * Override one or more built-in states, or inject entirely new states.
+     * Accepts a partial map of RunStatus → factory function.
+     */
+    public stateFactory(overrides: Partial<Record<RunStatus, () => import('../runtime/states/State.js').AgentState>>): this {
+        this.stateFactoryInstance = new StateFactory(overrides);
+        return this;
+    }
+
+    /**
+     * Set the maximum buffer size for unconsumed events in the async event stream queue.
+     * Prevents memory leaks under high throughput. Defaults to 1000.
+     */
+    public eventBufferLimit(limit: number): this {
+        this.eventBufferLimitValue = limit;
         return this;
     }
 

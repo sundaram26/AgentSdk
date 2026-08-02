@@ -9,6 +9,8 @@ import type { RunEventEmitter } from '../events/RunEventEmitter.js';
 import type { Tracer } from '../tracing/Tracer.js';
 import type { Trace } from '../tracing/types.js';
 import type { MemoryManager } from '../memory/MemoryManager.js';
+import type { ContextPruner } from '../context/ContextPruner.js';
+import type { StateFactory } from './states/StateFactory.js';
 
 export type RunStatus = 'PLANNING' | 'EXECUTING' | 'AWAITING_APPROVAL' | 'VERIFYING' | 'DONE' | 'FAILED';
 
@@ -55,6 +57,17 @@ export interface RunContext {
     // Memory & Session
     sessionId?: string | undefined;
     memoryManager?: MemoryManager | undefined;
+
+    // Context Pruning & Token Budgeting
+    maxContextTokens?: number | undefined;
+    contextPruner?: ContextPruner | undefined;
+
+    /**
+     * Optional custom state factory. When provided, the RunStateMachine uses it
+     * to create state transitions instead of hardcoded constructors — allowing
+     * developers to override or extend any built-in state.
+     */
+    stateFactory?: StateFactory | undefined;
 }
 
 export interface RunOptions {
@@ -82,6 +95,10 @@ export interface RunOptions {
     // Memory options
     sessionId?: string | undefined;
     memoryManager?: MemoryManager | undefined;
+
+    // Context Pruning options
+    maxContextTokens?: number | undefined;
+    contextPruner?: ContextPruner | undefined;
 }
 
 export interface RunResult<TData = unknown> {

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { LLMPort } from '../LLMPort.js';
-import type { Message, LLMOptions, LLMResponse, AdapterOptions } from '../types.js';
+import type { Message, LLMOptions, LLMResponse, AdapterOptions, ToolCallInfo } from '../types.js';
 
 export class ClaudeAdapter implements LLMPort {
     public readonly providerName = 'claude';
@@ -38,10 +38,35 @@ export class ClaudeAdapter implements LLMPort {
         if (system !== undefined) params.system = system;
         if (options.temperature !== undefined) params.temperature = options.temperature;
 
+        if (options.tools && options.tools.length > 0) {
+            params.tools = options.tools.map((t) => ({
+                name: t.name,
+                description: t.description,
+                input_schema: (t.inputSchema as unknown as Anthropic.Tool.InputSchema) || { type: 'object', properties: {} },
+            }));
+        }
+
         const response = await this.client.messages.create(params);
 
-        const textBlock = response.content.find(block => block.type === 'text') as Anthropic.TextBlock;
-        return { text: textBlock ? textBlock.text : '' };
+        let text = '';
+        const toolCalls: ToolCallInfo[] = [];
+
+        for (const block of response.content) {
+            if (block.type === 'text') {
+                text += block.text;
+            } else if (block.type === 'tool_use') {
+                toolCalls.push({
+                    id: block.id,
+                    name: block.name,
+                    arguments: (typeof block.input === 'object' && block.input !== null) ? (block.input as Record<string, unknown>) : {},
+                });
+            }
+        }
+
+        return {
+            text,
+            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        };
     }
 
     async *stream(messages: Message[], options: LLMOptions): AsyncIterable<string> {

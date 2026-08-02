@@ -1,7 +1,5 @@
 import { AgentState } from './State.js';
-import { PlanningState } from './PlanningState.js';
-import { FailedState } from './FailedState.js';
-import { AwaitingApprovalState } from './AwaitingApprovalState.js';
+import { defaultStateFactory } from './StateFactory.js';
 import { GuardrailError } from '../../guardrails/GuardrailError.js';
 import type { RunContext, RunStatus } from '../types.js';
 
@@ -9,9 +7,11 @@ export class ExecutingState extends AgentState {
     public readonly status: RunStatus = 'EXECUTING';
 
     public async execute(context: RunContext): Promise<AgentState> {
+        const factory = context.stateFactory ?? defaultStateFactory;
+
         const toolCalls = context.pendingToolCalls;
         if (!toolCalls || toolCalls.length === 0) {
-            return new PlanningState();
+            return factory.create('PLANNING');
         }
 
         for (const toolCall of toolCalls) {
@@ -44,7 +44,8 @@ export class ExecutingState extends AgentState {
                         if (toolSpanId && context.tracer) {
                             context.tracer.endSpan(toolSpanId, new Error(blockEval.reason));
                         }
-                        return new FailedState(
+                        return factory.create(
+                            'FAILED',
                             new GuardrailError(blockEval.ruleName, blockEval.reason || 'Tool execution blocked by guardrail policy')
                         );
                     }
@@ -60,7 +61,7 @@ export class ExecutingState extends AgentState {
                         if (toolSpanId && context.tracer) {
                             context.tracer.endSpan(toolSpanId, undefined, { status: 'AWAITING_APPROVAL' });
                         }
-                        return new AwaitingApprovalState();
+                        return factory.create('AWAITING_APPROVAL');
                     }
                 }
             }
@@ -112,12 +113,10 @@ export class ExecutingState extends AgentState {
 
         // Check max turns guard
         if (context.currentTurn > context.maxTurns) {
-            return new FailedState(
-                new Error(`Run exceeded maximum turn limit of ${context.maxTurns}`)
-            );
+            return factory.create('FAILED', new Error(`Run exceeded maximum turn limit of ${context.maxTurns}`));
         }
 
         // Return to PlanningState for the next turn
-        return new PlanningState();
+        return factory.create('PLANNING');
     }
 }
