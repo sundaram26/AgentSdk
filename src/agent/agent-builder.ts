@@ -1,0 +1,90 @@
+import { Agent } from './agent.js';
+import type { LLMPort } from '../llm/LLMPort.js';
+import type { AnyToolCommand } from '../tools/types.js';
+import { ToolRegistry } from '../tools/ToolRegistry.js';
+import { GuardrailPipeline } from '../guardrails/GuardrailPipeline.js';
+import { ApprovalGate } from '../guardrails/ApprovalGate.js';
+import type { GuardrailRule, ToolCallPayload } from '../guardrails/types.js';
+
+export class AgentBuilder {
+    public instructionsText?: string;
+    public modelName: string = 'gpt-4o';
+    public llmPort?: LLMPort;
+    public toolRegistry: ToolRegistry = new ToolRegistry();
+    public maxTurnsCount: number = 10;
+    public maxReasksCount: number = 1;
+    public temperatureValue?: number;
+    public maxTokensValue?: number;
+
+    // Guardrail pipelines
+    public inputPipeline: GuardrailPipeline<string> = new GuardrailPipeline<string>();
+    public toolPipeline: GuardrailPipeline<ToolCallPayload> = new GuardrailPipeline<ToolCallPayload>();
+    public outputPipeline: GuardrailPipeline<string> = new GuardrailPipeline<string>();
+    public approvalGate: ApprovalGate = new ApprovalGate();
+
+    public instructions(text: string): this {
+        this.instructionsText = text;
+        return this;
+    }
+
+    public model(modelName: string): this {
+        this.modelName = modelName;
+        return this;
+    }
+
+    public llm(llm: LLMPort): this {
+        this.llmPort = llm;
+        return this;
+    }
+
+    public tool(tool: AnyToolCommand): this {
+        this.toolRegistry.register(tool);
+        return this;
+    }
+
+    public maxTurns(max: number): this {
+        this.maxTurnsCount = max;
+        return this;
+    }
+
+    public maxReasks(max: number): this {
+        this.maxReasksCount = max;
+        return this;
+    }
+
+    public temperature(temp: number): this {
+        this.temperatureValue = temp;
+        return this;
+    }
+
+    public maxTokens(tokens: number): this {
+        this.maxTokensValue = tokens;
+        return this;
+    }
+
+    public inputGuardrail(rule: GuardrailRule<string>): this {
+        this.inputPipeline.addRule(rule);
+        return this;
+    }
+
+    public toolGuardrail(rule: GuardrailRule<ToolCallPayload>): this {
+        this.toolPipeline.addRule(rule);
+        return this;
+    }
+
+    public outputGuardrail(rule: GuardrailRule<string>): this {
+        this.outputPipeline.addRule(rule);
+        return this;
+    }
+
+    public build(): Agent {
+        if (!this.llmPort) {
+            throw new Error('Agent requires an LLMPort adapter (e.g. OpenAIAdapter, ClaudeAdapter, GeminiAdapter)');
+        }
+        return new Agent(this);
+    }
+}
+
+export function createAgent(): AgentBuilder {
+    return new AgentBuilder();
+}
