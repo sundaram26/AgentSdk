@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { ModelParams, GenerationConfig, GenerateContentRequest, Content } from '@google/generative-ai';
+import type { ModelParams, GenerationConfig, GenerateContentRequest, Content, FunctionDeclaration } from '@google/generative-ai';
 import type { LLMPort } from '../LLMPort.js';
 import type { Message, LLMOptions, LLMResponse, AdapterOptions, ToolCallInfo } from '../types.js';
 
@@ -40,7 +40,7 @@ export class GeminiAdapter implements LLMPort {
                     name: t.name,
                     description: t.description,
                     parameters: (t.inputSchema as unknown as Record<string, unknown>) || {},
-                })),
+                })) as unknown as FunctionDeclaration[],
             }];
         }
 

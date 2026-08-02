@@ -1,6 +1,6 @@
 import type { ZodTypeAny } from 'zod';
 import type { LLMPort } from '../llm/LLMPort.js';
-import type { Message } from '../llm/types.js';
+import type { Message, ToolCallInfo } from '../llm/types.js';
 import type { ToolRegistry } from '../tools/ToolRegistry.js';
 import type { GuardrailPipeline } from '../guardrails/GuardrailPipeline.js';
 import type { ApprovalGate } from '../guardrails/ApprovalGate.js';
@@ -14,11 +14,7 @@ import type { StateFactory } from './states/StateFactory.js';
 
 export type RunStatus = 'PLANNING' | 'EXECUTING' | 'AWAITING_APPROVAL' | 'VERIFYING' | 'DONE' | 'FAILED';
 
-export interface ToolCallInfo {
-    id: string;
-    name: string;
-    arguments: Record<string, unknown>;
-}
+export type { ToolCallInfo };
 
 export interface RunContext {
     llm: LLMPort;
