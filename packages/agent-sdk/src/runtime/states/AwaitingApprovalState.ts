@@ -12,6 +12,13 @@ export class AwaitingApprovalState extends AgentState {
             return new ExecutingState();
         }
 
+        if (context.approvalGate) {
+            const latest = await context.approvalGate.getRequest(approval.id);
+            if (latest) {
+                approval.status = latest.status;
+            }
+        }
+
         if (approval.status === 'APPROVED') {
             context.pendingApprovalRequest = undefined;
             return new ExecutingState();

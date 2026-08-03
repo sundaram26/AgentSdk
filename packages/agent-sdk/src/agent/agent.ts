@@ -151,7 +151,7 @@ export class Agent {
         return emitter.toAsyncIterable();
     }
 
-    public getPendingApprovals(): ApprovalRequest[] {
+    public async getPendingApprovals(): Promise<ApprovalRequest[]> {
         return this.builderConfig.approvalGate.getPendingRequests();
     }
 

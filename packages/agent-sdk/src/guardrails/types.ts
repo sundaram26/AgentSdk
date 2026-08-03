@@ -39,6 +39,13 @@ export interface ApprovalRequest {
 
 // Rule Specific Types & Options
 
+export interface ApprovalStore {
+    save(request: ApprovalRequest): Promise<void>;
+    get(id: string): Promise<ApprovalRequest | undefined>;
+    getPending(): Promise<ApprovalRequest[]>;
+    update(id: string, status: 'APPROVED' | 'REJECTED'): Promise<boolean>;
+}
+
 export interface PromptInjectionOptions {
     customPatterns?: RegExp[] | undefined;
 }

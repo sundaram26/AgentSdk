@@ -12,13 +12,49 @@ export class ClaudeAdapter implements LLMPort {
     }
 
     private formatMessages(messages: Message[]): { system?: string; messages: Anthropic.MessageParam[] } {
-        const systemMessage = messages.find(m => m.role === 'system')?.content;
-        const chatMessages = messages
-            .filter(m => m.role !== 'system')
-            .map(m => ({
-                role: m.role as 'user' | 'assistant',
-                content: m.content,
-            }));
+        const systemMessage = messages.find((m) => m.role === 'system')?.content;
+        const chatMessages: Anthropic.MessageParam[] = [];
+
+        for (const m of messages) {
+            if (m.role === 'system') continue;
+
+            if (m.role === 'tool') {
+                chatMessages.push({
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'tool_result',
+                            tool_use_id: m.tool_call_id || '',
+                            content: m.content,
+                        },
+                    ],
+                });
+            } else if (m.role === 'assistant') {
+                const content: Array<Anthropic.TextBlockParam | Anthropic.ToolUseBlockParam> = [];
+                if (m.content) {
+                    content.push({ type: 'text', text: m.content });
+                }
+                if (m.tool_calls) {
+                    for (const tc of m.tool_calls) {
+                        content.push({
+                            type: 'tool_use',
+                            id: tc.id,
+                            name: tc.name,
+                            input: tc.arguments,
+                        });
+                    }
+                }
+                chatMessages.push({
+                    role: 'assistant',
+                    content: content.length > 0 ? content : m.content,
+                });
+            } else {
+                chatMessages.push({
+                    role: 'user',
+                    content: m.content,
+                });
+            }
+        }
 
         const result: { system?: string; messages: Anthropic.MessageParam[] } = { messages: chatMessages };
         if (systemMessage !== undefined) {

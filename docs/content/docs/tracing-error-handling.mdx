@@ -1,6 +1,59 @@
 ---
-title: "Error Handling & Taxonomy"
-description: "Understand the error hierarchy, code semantics, and recovery patterns in [SDK Name]."
+title: "Tracing & Error Handling"
+description: "Inspect execution telemetry and handle runtime faults safely."
+---
+
+# Integrations & Observability
+
+Observability features provide deep visibility into every tool call, turn latency, state transition, and token count using `Tracer`.
+
+---
+
+## Attaching a Telemetry `Tracer`
+
+```typescript
+import { AgentBuilder, OpenAIAdapter, Tracer } from '[SDK Name]';
+
+const tracer = new Tracer({
+  serviceName: 'agent-service',
+  logLevel: 'info',
+  onSpanEnd(span) {
+    console.log(`[Span]: ${span.name} | Duration: ${span.durationMs}ms | Status: ${span.status}`);
+  },
+});
+
+const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
+
+const agent = new AgentBuilder()
+  .name('ObservedAgent')
+  .llm(adapter)
+  .tracer(tracer)
+  .build();
+
+async function run() {
+  const result = await agent.run('Run diagnostic telemetry audit');
+  const trace = tracer.exportTrace(result.runId);
+  console.log(`Trace Duration: ${trace.totalDurationMs}ms (${trace.spans.length} spans)`);
+}
+
+run().catch(console.error);
+```
+
+---
+
+## OpenTelemetry Collector Export
+
+Export traces directly to OTLP collectors (Datadog, Honeycomb, New Relic):
+
+```typescript
+const otelTracer = new Tracer({
+  exporter: {
+    type: 'otlp-http',
+    endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
+  },
+});
+```
+
 ---
 
 # Error Handling & Taxonomy
@@ -95,3 +148,6 @@ async function runSafely() {
 
 runSafely().catch(console.error);
 ```
+
+---
+

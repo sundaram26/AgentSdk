@@ -1,10 +1,12 @@
 import type { AnyToolCommand } from '../tools/types.js';
 
-export type Role = 'user' | 'assistant' | 'system';
+export type Role = 'user' | 'assistant' | 'system' | 'tool';
 
 export interface Message {
     role: Role;
     content: string;
+    tool_call_id?: string | undefined;
+    tool_calls?: ToolCallInfo[] | undefined;
 }
 
 export interface ToolCallInfo {

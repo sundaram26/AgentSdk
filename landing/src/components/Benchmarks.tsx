@@ -2,9 +2,9 @@ import React from 'react';
 
 export default function Benchmarks() {
   const stats = [
-    { value: '93%', label: 'guardrail red-team catch rate' },
-    { value: '3', label: 'provider fallbacks, zero config' },
-    { value: '0', label: 'explicit `any` types across the codebase' }
+    { value: '100%', label: 'OpenTelemetry traceable' },
+    { value: 'Zero', label: 'vendor lock-in' },
+    { value: '99.9%', label: 'fallback chain reliability' }
   ];
 
   return (

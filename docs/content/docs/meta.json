@@ -2,11 +2,13 @@
   "title": "[SDK Name]",
   "root": true,
   "pages": [
-    "getting-started",
-    "core-concepts",
-    "capabilities",
-    "observability",
-    "proof",
-    "reference"
+    "installation",
+    "quick-start",
+    "tools-handoffs",
+    "guardrails",
+    "memory-sessions",
+    "structured-output-streaming",
+    "tracing-error-handling",
+    "examples"
   ]
 }

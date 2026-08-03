@@ -14,12 +14,54 @@ export class GeminiAdapter implements LLMPort {
 
     private formatMessages(messages: Message[]): { systemInstruction?: string; contents: Content[] } {
         const systemMessage = messages.find(m => m.role === 'system')?.content;
-        const chatMessages: Content[] = messages
-            .filter(m => m.role !== 'system')
-            .map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }],
-            }));
+        const chatMessages: Content[] = [];
+        for (const m of messages) {
+            if (m.role === 'system') continue;
+
+            if (m.role === 'tool') {
+                let responseObj = {};
+                try {
+                    responseObj = JSON.parse(m.content);
+                } catch {
+                    responseObj = { error: m.content };
+                }
+                chatMessages.push({
+                    role: 'function' as const,
+                    parts: [
+                        {
+                            functionResponse: {
+                                name: m.tool_call_id || 'unknown_tool',
+                                response: responseObj,
+                            },
+                        } as any,
+                    ],
+                });
+            } else if (m.role === 'assistant') {
+                const parts: any[] = [];
+                if (m.content) {
+                    parts.push({ text: m.content });
+                }
+                if (m.tool_calls) {
+                    for (const tc of m.tool_calls) {
+                        parts.push({
+                            functionCall: {
+                                name: tc.name,
+                                args: tc.arguments,
+                            },
+                        });
+                    }
+                }
+                chatMessages.push({
+                    role: 'model' as const,
+                    parts: parts.length > 0 ? parts : [{ text: m.content }],
+                });
+            } else {
+                chatMessages.push({
+                    role: 'user' as const,
+                    parts: [{ text: m.content }],
+                });
+            }
+        }
 
         const result: { systemInstruction?: string; contents: Content[] } = { contents: chatMessages };
         if (systemMessage !== undefined) {

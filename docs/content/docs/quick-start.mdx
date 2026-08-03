@@ -1,0 +1,454 @@
+---
+title: "Quick Start & API Usage"
+description: "Learn the core concepts and get your first agent running."
+---
+
+# Quickstart
+
+This guide shows you how to define a single focused agent, bind tools with Zod validation, and run an execution loop using `[SDK Name]`.
+
+---
+
+## Define a Single Agent
+
+An agent is constructed using `AgentBuilder`. Pass system instructions, provider adapters, and registered tools:
+
+```typescript
+import { AgentBuilder, OpenAIAdapter, createTool } from '[SDK Name]';
+import { z } from 'zod';
+
+// 1. Define a tool with Zod schema validation
+const getWeather = createTool({
+  name: 'get_weather',
+  description: 'Return the weather for a given city.',
+  schema: z.object({
+    city: z.string().describe('City name, e.g. San Francisco'),
+  }),
+  async execute({ city }) {
+    return { location: city, temperature: '22°C', condition: 'Sunny' };
+  },
+});
+
+// 2. Instantiate LLM provider adapter
+const adapter = new OpenAIAdapter({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o',
+});
+
+// 3. Build the agent
+const agent = new AgentBuilder()
+  .name('Weather bot')
+  .instructions('You are a helpful travel assistant. Always use tools to verify weather.')
+  .llm(adapter)
+  .tools([getWeather])
+  .build();
+
+// 4. Execute a task
+async function main() {
+  const result = await agent.run('What is the weather in Tokyo right now?');
+  console.log(result.output);
+}
+
+main().catch(console.error);
+```
+
+---
+
+## Core Execution Flow
+
+```
+User Request ──► Agent (PLANNING) ──► LLM Tool Call ──► Tool Handler (EXECUTING) ──► FSM Verification ──► Final Result (DONE)
+```
+
+1. **Planning**: The agent sends conversation history, active instructions, and available tools to the LLM adapter.
+2. **Execution**: If the model requests tool calls, `[SDK Name]` validates arguments via Zod and executes tool handlers.
+3. **Verification**: Output is validated against guardrails and schemas before returning the final response.
+
+---
+
+## Next Steps
+
+- [Agent Definitions](/docs/core-concepts/agent-definitions) - Learn how to shape instructions, tools, and configurations.
+- [Models and Providers](/docs/core-concepts/models-and-providers) - Switch between OpenAI, Claude, and Gemini seamlessly.
+
+---
+
+# Agent Definitions
+
+An **Agent** is an autonomous entity configured with specific instructions, provider models, tool definitions, and turn boundaries.
+
+---
+
+## Define a Focused Agent
+
+Use `AgentBuilder` to configure single agents cleanly:
+
+```typescript
+import { AgentBuilder, OpenAIAdapter, createTool } from '[SDK Name]';
+import { z } from 'zod';
+
+const searchDocsTool = createTool({
+  name: 'search_docs',
+  description: 'Search documentation entries for a query string.',
+  schema: z.object({
+    query: z.string().describe('Search query string'),
+  }),
+  async execute({ query }) {
+    return { results: [`Documentation entry for: ${query}`] };
+  },
+});
+
+const adapter = new OpenAIAdapter({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o',
+});
+
+const agent = new AgentBuilder()
+  .name('DocsAssistant')
+  .instructions('You are a technical support agent. Use tools to query official documentation.')
+  .llm(adapter)
+  .tools([searchDocsTool])
+  .maxTurns(5)
+  .build();
+```
+
+---
+
+## Shaping Instructions, Handoffs, and Outputs
+
+Three configuration choices deserve extra care:
+
+- **Static vs. Dynamic Instructions**: Start with static instructions via `.instructions('...')`. When guidance depends on current user or tenant context, pass a dynamic instruction callback.
+- **Tool Parameter Schemas**: Always provide explicit `.describe()` annotations on Zod fields so the LLM understands input requirements.
+- **Turn Limits**: Set `.maxTurns(N)` to prevent runaway execution loops during automated multi-tool runs.
+
+---
+
+## Registering Tools with Zod Schemas
+
+Tools provide external capabilities (API queries, database operations, mathematical calculations) to agents:
+
+```typescript
+import { createTool, ToolError } from '[SDK Name]';
+import { z } from 'zod';
+
+export const getUserTool = createTool({
+  name: 'get_user',
+  description: 'Fetch user profile metadata by user UUID.',
+  schema: z.object({
+    userId: z.string().uuid().describe('Target user UUID'),
+  }),
+  async execute({ userId }) {
+    try {
+      const user = await database.findUser(userId);
+      if (!user) throw new ToolError(`User ${userId} not found`, 'NOT_FOUND');
+      return user;
+    } catch (err: any) {
+      if (err instanceof ToolError) throw err;
+      throw new ToolError(`Execution failed: ${err.message}`, 'EXECUTION_ERROR');
+    }
+  },
+});
+```
+
+---
+
+# Running Agents & State Machine
+
+Unlike unconstrained loops that rely on fragile text parsing, `[SDK Name]` runs every agent execution inside a **Deterministic Finite State Machine (FSM)** driven by `RunStateMachine`.
+
+---
+
+import { HeroDiagram } from '@/app/components/HeroDiagram';
+
+## The 6 Explicit Runtime States
+
+<HeroDiagram />
+
+1. **`PLANNING`**: Sends messages to the LLM adapter. Transitions to `EXECUTING` if tools are called, or `VERIFYING` if a final response is ready.
+2. **`EXECUTING`**: Runs tool handlers sequentially through `ToolRegistry`. If human approval is required, transitions to `AWAITING_APPROVAL`.
+3. **`VERIFYING`**: Validates output against guardrail policies and Zod schemas. Triggers self-repair retries back to `PLANNING` on failure.
+4. **`AWAITING_APPROVAL`**: Suspends execution for human confirmation via `ApprovalGate`.
+5. **`DONE`**: Successful terminal state.
+6. **`FAILED`**: Terminal state reached when turn limits or unrecoverable errors occur.
+
+---
+
+## Code Example: Running an Agent
+
+```typescript
+import { AgentBuilder, OpenAIAdapter } from '[SDK Name]';
+
+const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
+
+const agent = new AgentBuilder()
+  .name('Runner')
+  .llm(adapter)
+  .maxTurns(50) // Customize max turn execution limit (defaults to 10)
+  .build();
+
+async function run() {
+  const result = await agent.run('Process user request');
+
+  console.log(`Execution State: ${result.state}`);
+  console.log(`Final Response: ${result.output}`);
+  console.log(`Turns Used: ${result.turns}`);
+}
+
+run().catch(console.error);
+```
+
+---
+
+## Customizable Turn Limits
+
+- **Default Cap (`maxTurns: 10`)**: Protects single-task agents against runaway API billing loops.
+- **Customizable Bound**: Developers can scale turns up to `.maxTurns(200)` for complex multi-tool autonomous workflows.
+
+---
+
+# Models and Providers
+
+`[SDK Name]` is model-agnostic. All provider drivers share a unified interface, allowing you to switch between OpenAI, Anthropic Claude, and Google Gemini models seamlessly without changing any tool logic or agent code.
+
+---
+
+## Configuring Model Providers
+
+Pass your API credentials and model configuration options to the corresponding provider adapter:
+
+<Tabs items={['OpenAI', 'Anthropic Claude', 'Google Gemini']}>
+  <Tab value="OpenAI">
+    ```typescript
+    import { OpenAIAdapter } from '[SDK Name]';
+
+    const adapter = new OpenAIAdapter({
+      apiKey: process.env.OPENAI_API_KEY!,
+      model: 'gpt-4o',
+      temperature: 0.2,
+    });
+    ```
+  </Tab>
+  <Tab value="Anthropic Claude">
+    ```typescript
+    import { ClaudeAdapter } from '[SDK Name]';
+
+    const adapter = new ClaudeAdapter({
+      apiKey: process.env.ANTHROPIC_API_KEY!,
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 4096,
+    });
+    ```
+  </Tab>
+  <Tab value="Google Gemini">
+    ```typescript
+    import { GeminiAdapter } from '[SDK Name]';
+
+    const adapter = new GeminiAdapter({
+      apiKey: process.env.GEMINI_API_KEY!,
+      model: 'gemini-1.5-pro',
+    });
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Multi-Provider Failover with `FallbackChain`
+
+Achieve zero-downtime reliability by configuring an automatic failover chain across providers. If the primary provider experiences rate limits or outages, execution automatically fails over to secondary models:
+
+```typescript
+import { AgentBuilder, FallbackChain, OpenAIAdapter, ClaudeAdapter } from '[SDK Name]';
+
+const primaryModel = new OpenAIAdapter({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o',
+});
+
+const fallbackModel = new ClaudeAdapter({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+  model: 'claude-3-5-sonnet-20241022',
+});
+
+// Configure automatic failover
+const llm = new FallbackChain({
+  adapters: [primaryModel, fallbackModel],
+  maxRetriesPerAdapter: 2,
+});
+
+const agent = new AgentBuilder()
+  .name('HighAvailabilityAgent')
+  .llm(llm)
+  .build();
+```
+
+---
+
+## Writing a Custom Provider Adapter
+
+To integrate custom fine-tuned models, local Ollama instances, or internal endpoints, implement a custom adapter:
+
+```typescript
+import { LLMPort, Message, LLMOptions, LLMResponse } from '[SDK Name]';
+
+export class CustomLocalAdapter implements LLMPort {
+  readonly providerName = 'custom-local';
+
+  async generate(messages: Message[], options?: LLMOptions): Promise<LLMResponse> {
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'llama3', messages }),
+    });
+
+    const data = await res.json();
+    return { content: data.message.content, toolCalls: [] };
+  }
+}
+```
+
+---
+
+# API Reference
+
+Complete reference table of all public module exports provided by `[SDK Name]`. All symbols are exported directly from `[SDK Name]`.
+
+---
+
+## Primary Agent & Construction API
+
+<TypeTable
+  type={{
+    Agent: {
+      description: 'Core agent instance executing state machine runs.',
+      type: 'class Agent',
+    },
+    AgentBuilder: {
+      description: 'Fluent builder pattern class for configuring and instantiating Agent objects.',
+      type: 'class AgentBuilder',
+    },
+    AgentRuntime: {
+      description: 'Underlying FSM engine managing state transitions and turn limits.',
+      type: 'class AgentRuntime',
+    },
+    RunStateMachine: {
+      description: 'Finite State Machine implementation managing the 6 runtime states.',
+      type: 'class RunStateMachine',
+    },
+    StateFactory: {
+      description: 'Factory pattern for instantiating and customizing runtime state handlers.',
+      type: 'class StateFactory',
+    },
+  }}
+/>
+
+---
+
+## LLM Adapters & Reliability API
+
+<TypeTable
+  type={{
+    LLMPort: {
+      description: 'Abstract interface contract powering total provider independence.',
+      type: 'interface LLMPort',
+    },
+    OpenAIAdapter: {
+      description: 'Zero-dependency driver for GPT-4o, GPT-4o-mini, and OpenAI-compatible endpoints.',
+      type: 'class OpenAIAdapter implements LLMPort',
+    },
+    ClaudeAdapter: {
+      description: 'Zero-dependency driver for Claude 3.5 Sonnet, Opus, and Haiku.',
+      type: 'class ClaudeAdapter implements LLMPort',
+    },
+    GeminiAdapter: {
+      description: 'Zero-dependency driver for Gemini 1.5 Pro and Flash.',
+      type: 'class GeminiAdapter implements LLMPort',
+    },
+    FallbackChain: {
+      description: 'Multi-provider failover driver implementing LLMPort.',
+      type: 'class FallbackChain implements LLMPort',
+    },
+  }}
+/>
+
+---
+
+## Tools & Guardrails API
+
+<TypeTable
+  type={{
+    createTool: {
+      description: 'Helper function for constructing type-safe Zod-validated tools.',
+      type: 'function createTool<T>(options: ToolOptions<T>): Tool',
+    },
+    ToolRegistry: {
+      description: 'Registry store for managing and looking up active agent tools.',
+      type: 'class ToolRegistry',
+    },
+    GuardrailPipeline: {
+      description: 'Sequential pipeline executing safety and policy verification rules.',
+      type: 'class GuardrailPipeline',
+    },
+    ApprovalGate: {
+      description: 'Human-in-the-loop gate for pausing execution on sensitive tools.',
+      type: 'class ApprovalGate',
+    },
+    PromptInjectionRule: {
+      description: 'Rule detecting jailbreak and injection attempts.',
+      type: 'class PromptInjectionRule',
+    },
+    PIIRedactionRule: {
+      description: 'Rule scanning and masking sensitive PII data.',
+      type: 'class PIIRedactionRule',
+    },
+    ToolBoundaryRule: {
+      description: 'Rule enforcing white-label tool invocation permissions.',
+      type: 'class ToolBoundaryRule',
+    },
+    LLMClassifierRule: {
+      description: 'Rule evaluating text outputs against policy text using an LLM.',
+      type: 'class LLMClassifierRule',
+    },
+  }}
+/>
+
+---
+
+## Memory, Handoffs, & Observability API
+
+<TypeTable
+  type={{
+    StructuredOutputValidator: {
+      description: 'Validates JSON responses against Zod schemas and manages self-repair loops.',
+      type: 'class StructuredOutputValidator',
+    },
+    HandoffManager: {
+      description: 'Manages dynamic sub-agent routing and context forwarding.',
+      type: 'class HandoffManager',
+    },
+    HANDOFF_TOOL_NAME: {
+      description: 'Constant identifier for the internal sub-agent handoff tool.',
+      type: 'const HANDOFF_TOOL_NAME = "handoff_to_agent"',
+    },
+    MemoryManager: {
+      description: 'Handles session state loading, saving, and expiration.',
+      type: 'class MemoryManager',
+    },
+    FileMemoryStore: {
+      description: 'File-backed session persistence store.',
+      type: 'class FileMemoryStore implements MemorySessionStore',
+    },
+    ContextPruner: {
+      description: 'Prunes conversation context to fit within token budgets.',
+      type: 'class ContextPruner',
+    },
+    Tracer: {
+      description: 'Telemetry collector capturing state transitions and execution spans.',
+      type: 'class Tracer',
+    },
+  }}
+/>
+
+---
+

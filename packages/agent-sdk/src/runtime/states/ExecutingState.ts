@@ -53,7 +53,7 @@ export class ExecutingState extends AgentState {
 
                     const pauseEval = report.evaluations.find((e: GuardrailEvaluation) => e.actionTaken === 'pause');
                     if (pauseEval && context.approvalGate) {
-                        const approvalReq = context.approvalGate.createRequest(
+                        const approvalReq = await context.approvalGate.createRequest(
                             toolCall.name,
                             toolCall.arguments,
                             pauseEval.reason || 'Tool requires human approval'
@@ -98,13 +98,15 @@ export class ExecutingState extends AgentState {
 
             if (executionResult.success) {
                 context.messages.push({
-                    role: 'assistant',
-                    content: `[Tool Call Result for ${toolCall.name}]: ${JSON.stringify(executionResult.result)}`,
+                    role: 'tool',
+                    tool_call_id: toolCall.id,
+                    content: JSON.stringify(executionResult.result),
                 });
             } else {
                 context.messages.push({
-                    role: 'assistant',
-                    content: `[Tool Call Failed for ${toolCall.name}]: ${executionResult.error.message}`,
+                    role: 'tool',
+                    tool_call_id: toolCall.id,
+                    content: executionResult.error.message,
                 });
             }
         }

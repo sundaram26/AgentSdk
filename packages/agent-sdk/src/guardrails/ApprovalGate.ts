@@ -1,13 +1,18 @@
-import type { ApprovalRequest } from './types.js';
+import type { ApprovalRequest, ApprovalStore } from './types.js';
+import { MemoryApprovalStore } from './MemoryApprovalStore.js';
 
 export class ApprovalGate {
-    private requests = new Map<string, ApprovalRequest>();
+    private store: ApprovalStore;
 
-    public createRequest(
+    constructor(store?: ApprovalStore) {
+        this.store = store ?? new MemoryApprovalStore();
+    }
+
+    public async createRequest(
         toolName: string,
         args: Record<string, unknown>,
         reason: string
-    ): ApprovalRequest {
+    ): Promise<ApprovalRequest> {
         const id = `appr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const request: ApprovalRequest = {
             id,
@@ -18,25 +23,19 @@ export class ApprovalGate {
             requestedAt: new Date(),
         };
 
-        this.requests.set(id, request);
+        await this.store.save(request);
         return request;
     }
 
-    public getPendingRequests(): ApprovalRequest[] {
-        return Array.from(this.requests.values()).filter((r) => r.status === 'PENDING');
+    public async getPendingRequests(): Promise<ApprovalRequest[]> {
+        return this.store.getPending();
     }
 
-    public getRequest(id: string): ApprovalRequest | undefined {
-        return this.requests.get(id);
+    public async getRequest(id: string): Promise<ApprovalRequest | undefined> {
+        return this.store.get(id);
     }
 
-    public resolveRequest(id: string, approved: boolean): boolean {
-        const request = this.requests.get(id);
-        if (!request || request.status !== 'PENDING') {
-            return false;
-        }
-
-        request.status = approved ? 'APPROVED' : 'REJECTED';
-        return true;
+    public async resolveRequest(id: string, approved: boolean): Promise<boolean> {
+        return this.store.update(id, approved ? 'APPROVED' : 'REJECTED');
     }
 }

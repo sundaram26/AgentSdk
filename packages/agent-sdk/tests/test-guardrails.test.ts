@@ -65,7 +65,7 @@ describe('Guardrail Pipeline & Approval Gate Unit Tests', () => {
         expect(run1.status).toBe('AWAITING_APPROVAL');
         expect(run1.pendingApproval).toBeDefined();
         expect(run1.pendingApproval?.toolName).toBe('delete_database');
-        expect(agent.getPendingApprovals().length).toBe(1);
+        expect((await agent.getPendingApprovals()).length).toBe(1);
 
         if (run1.pendingApproval) {
             const resumeResult = await agent.resume(run1.pendingApproval.id, true);

@@ -1,6 +1,6 @@
 ---
-title: "Orchestration & Multi-Agent Handoffs"
-description: "Decompose complex workflows into specialized sub-agents with context-preserving handoffs."
+title: "Tools & Handoffs"
+description: "Extend your agent with external functions and route between sub-agents."
 ---
 
 # Orchestration & Multi-Agent Handoffs
@@ -58,3 +58,6 @@ run().catch(console.error);
 1. **Default Bounds for Production Safety**: Handoff depth defaults to `3` delegation layers to protect applications against infinite routing loops.
 2. **Customizable Depth**: Developers can scale delegation depth via `.maxHandoffDepth(N)` for deep multi-tier organizational routing.
 3. **Automatic Context Forwarding**: Conversation history is preserved automatically when handoffs execute across sub-agents.
+
+---
+

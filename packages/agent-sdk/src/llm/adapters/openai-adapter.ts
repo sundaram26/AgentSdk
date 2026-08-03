@@ -12,10 +12,29 @@ export class OpenAIAdapter implements LLMPort {
     }
 
     private formatMessages(messages: Message[]): OpenAI.Chat.ChatCompletionMessageParam[] {
-        return messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-        }));
+        return messages.map((m) => {
+            if (m.role === 'tool') {
+                return {
+                    role: 'tool',
+                    tool_call_id: m.tool_call_id || '',
+                    content: m.content,
+                } as OpenAI.Chat.ChatCompletionToolMessageParam;
+            } else if (m.role === 'assistant' && m.tool_calls) {
+                return {
+                    role: 'assistant',
+                    content: m.content || null,
+                    tool_calls: m.tool_calls.map((tc) => ({
+                        id: tc.id,
+                        type: 'function',
+                        function: { name: tc.name, arguments: JSON.stringify(tc.arguments) },
+                    })),
+                } as OpenAI.Chat.ChatCompletionAssistantMessageParam;
+            }
+            return {
+                role: m.role as 'user' | 'system' | 'assistant',
+                content: m.content,
+            } as OpenAI.Chat.ChatCompletionMessageParam;
+        });
     }
 
     async generate(messages: Message[], options: LLMOptions): Promise<LLMResponse> {

@@ -235,6 +235,11 @@ export class AgentBuilder {
         return this;
     }
 
+    public approvalStore(store: import('../guardrails/types.js').ApprovalStore): this {
+        this.approvalGate = new ApprovalGate(store);
+        return this;
+    }
+
     public build(): Agent {
         if (!this.llmPort) {
             throw new Error('Agent requires an LLMPort adapter (e.g. OpenAIAdapter, ClaudeAdapter, GeminiAdapter)');

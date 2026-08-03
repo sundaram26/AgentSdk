@@ -4,7 +4,7 @@ import { createAgent, type LLMPort, type Message, type LLMOptions, type LLMRespo
 class MockRouterLLM implements LLMPort {
     public readonly providerName = 'mock-router';
     async generate(messages: Message[], options: LLMOptions): Promise<LLMResponse> {
-        const hasToolResult = messages.some((m) => m.content.includes('[Tool Call Result for handoff_to_agent]'));
+        const hasToolResult = messages.some((m) => m.role === 'tool');
         if (!hasToolResult) {
             return {
                 text: '```json\n{\n  "tool": "handoff_to_agent",\n  "arguments": {\n    "targetAgent": "billing_support",\n    "reason": "Invoice help"\n  }\n}\n```',

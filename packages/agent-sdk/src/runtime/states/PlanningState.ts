@@ -110,6 +110,7 @@ export class PlanningState extends AgentState {
             context.messages.push({
                 role: 'assistant',
                 content: response.text,
+                tool_calls: response.toolCalls && response.toolCalls.length > 0 ? response.toolCalls : undefined,
             });
 
             // 1. Primary path: Native provider tool call detection (OpenAI tool_calls, Claude tool_use, Gemini functionCall)
