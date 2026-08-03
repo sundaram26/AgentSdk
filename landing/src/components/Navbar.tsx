@@ -13,7 +13,10 @@ export default function Navbar() {
 
       {/* Center */}
       <div className="hidden md:flex flex-1 justify-center space-x-8">
-        {['Docs', 'Capabilities', 'Benchmarks', 'Examples'].map((item) => (
+        <a href="https://weave-docs.sundaramsingh.com" className="text-xs uppercase tracking-widest text-muted hover:text-ink transition-colors font-medium">
+          Docs
+        </a>
+        {['Capabilities', 'Benchmarks', 'Examples'].map((item) => (
           <a key={item} href={`#${item.toLowerCase()}`} className="text-xs uppercase tracking-widest text-muted hover:text-ink transition-colors font-medium">
             {item}
           </a>
@@ -22,7 +25,7 @@ export default function Navbar() {
 
       {/* Right */}
       <div className="flex-1 flex justify-end items-center space-x-6">
-        <a href="https://github.com" className="text-muted hover:text-ink transition-colors">
+        <a href="https://github.com/sundaram26/AgentSdk" className="text-muted hover:text-ink transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -42,7 +45,7 @@ export default function Navbar() {
           <Package className="w-3.5 h-3.5" />
           <span>v1.0.0</span>
         </div>
-        <a href="#docs" className="bg-ink text-surface rounded-full px-5 py-2 text-sm font-medium hover:opacity-90 transition-opacity">
+        <a href="https://weave-docs.sundaramsingh.com" className="bg-ink text-surface rounded-full px-5 py-2 text-sm font-medium hover:opacity-90 transition-opacity">
           Get Started
         </a>
       </div>

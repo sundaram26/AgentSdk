@@ -28,10 +28,10 @@ export default function CapsuleBar() {
           ))}
         </div>
 
-        <button className="mt-4 md:mt-0 md:ml-2 bg-ink text-surface rounded-full px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity flex items-center space-x-2">
+        <a href="https://weave-docs.sundaramsingh.com" className="mt-4 md:mt-0 md:ml-2 bg-ink text-surface rounded-full px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity flex items-center space-x-2">
           <span>View Docs</span>
           <span className="text-lg leading-none">→</span>
-        </button>
+        </a>
       </div>
     </div>
   );
