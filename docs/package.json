@@ -1,5 +1,5 @@
 {
-  "name": "agent-sdk-docs",
+  "name": "weave-docs",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "agent-sdk": "workspace:*",
+    "@weave-agent/core": "workspace:*",
     "fumadocs-core": "^15.0.0",
     "fumadocs-mdx": "^11.0.0",
     "fumadocs-ui": "^15.0.0",

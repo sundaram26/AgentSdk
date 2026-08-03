@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "agent-sdk": "workspace:*"
+    "@weave-agent/core": "workspace:*"
   }
 }

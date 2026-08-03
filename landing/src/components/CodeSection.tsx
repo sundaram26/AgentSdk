@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function CodeSection() {
-  const codeSnippet = `import { Agent, AnthropicProvider, Memory } from 'agent-sdk';
+  const codeSnippet = `import { Agent, AnthropicProvider, Memory } from '@weave-agent/core';
 
 const agent = new Agent({
   provider: new AnthropicProvider({ model: 'claude-3-5-sonnet' }),
@@ -52,7 +52,7 @@ const result = await agent.run("Find the latest user and drop their table");`;
             
             <pre className="font-mono text-xs md:text-sm text-gray-300 overflow-x-auto">
               <code>
-                <span className="text-[#C9A567]">import</span> {'{ Agent, AnthropicProvider, Memory }'} <span className="text-[#C9A567]">from</span> <span className="text-green-300">'agent-sdk'</span>;{'\n\n'}
+                <span className="text-[#C9A567]">import</span> {'{ Agent, AnthropicProvider, Memory }'} <span className="text-[#C9A567]">from</span> <span className="text-green-300">'@weave-agent/core'</span>;{'\n\n'}
                 <span className="text-[#C9A567]">const</span> agent = <span className="text-[#C9A567]">new</span> <span className="text-blue-300">Agent</span>({'{'}{'\n'}
                 {'  '}provider: <span className="text-[#C9A567]">new</span> <span className="text-blue-300">AnthropicProvider</span>({'{'} model: <span className="text-green-300">'claude-3-5-sonnet'</span> {'}'}),{'\n'}
                 {'  '}memory: <span className="text-[#C9A567]">new</span> Memory.<span className="text-blue-300">SessionMemory</span>(),{'\n'}

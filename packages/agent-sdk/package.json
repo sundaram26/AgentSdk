@@ -1,5 +1,5 @@
 {
-  "name": "agent-sdk",
+  "name": "@weave-agent/core",
   "version": "1.0.0",
   "description": "TypeScript-native AI Agent SDK with Ports & Adapters, State Machine, Memory, and Guardrails",
   "main": "./dist/index.js",

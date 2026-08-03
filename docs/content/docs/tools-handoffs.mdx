@@ -14,7 +14,7 @@ Orchestration enables multi-agent routing where a primary triage agent dynamical
 Configure multi-agent routing using `.subAgents([])` and customize delegation bounds with `.maxHandoffDepth()`:
 
 ```typescript
-import { AgentBuilder, OpenAIAdapter } from '[SDK Name]';
+import { AgentBuilder, OpenAIAdapter } from 'Weave';
 
 const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
 

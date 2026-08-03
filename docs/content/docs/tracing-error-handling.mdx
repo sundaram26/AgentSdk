@@ -12,7 +12,7 @@ Observability features provide deep visibility into every tool call, turn latenc
 ## Attaching a Telemetry `Tracer`
 
 ```typescript
-import { AgentBuilder, OpenAIAdapter, Tracer } from '[SDK Name]';
+import { AgentBuilder, OpenAIAdapter, Tracer } from 'Weave';
 
 const tracer = new Tracer({
   serviceName: 'agent-service',
@@ -58,7 +58,7 @@ const otelTracer = new Tracer({
 
 # Error Handling & Taxonomy
 
-`[SDK Name]` provides a structured, strongly typed error hierarchy allowing developers to catch, inspect, and recover gracefully from tool execution failures, schema mismatches, and security policy violations.
+`Weave` provides a structured, strongly typed error hierarchy allowing developers to catch, inspect, and recover gracefully from tool execution failures, schema mismatches, and security policy violations.
 
 ---
 
@@ -120,7 +120,7 @@ import {
   ToolError,
   ValidationError,
   StructuredOutputError,
-} from '[SDK Name]';
+} from 'Weave';
 
 const adapter = new OpenAIAdapter({
   apiKey: process.env.OPENAI_API_KEY!,

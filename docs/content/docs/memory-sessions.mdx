@@ -5,7 +5,7 @@ description: "Maintain state across multiple turns and sessions."
 
 # Results, Memory & State
 
-`[SDK Name]` provides session memory persistence and context token window management to maintain state across long-running multi-turn user interactions.
+`Weave` provides session memory persistence and context token window management to maintain state across long-running multi-turn user interactions.
 
 ---
 
@@ -17,7 +17,7 @@ import {
   OpenAIAdapter,
   MemoryManager,
   FileMemoryStore,
-} from '[SDK Name]';
+} from 'Weave';
 
 const memoryStore = new FileMemoryStore({ storageDir: './.sessions' });
 const memoryManager = new MemoryManager({ store: memoryStore, ttlSeconds: 86400 });
@@ -51,7 +51,7 @@ runSession().catch(console.error);
 Prevent context window overflow and reduce token API overhead using `ContextPruner`:
 
 ```typescript
-import { ContextPruner } from '[SDK Name]';
+import { ContextPruner } from 'Weave';
 
 const pruner = new ContextPruner({
   maxTokens: 4000,

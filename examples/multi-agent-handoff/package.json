@@ -7,7 +7,7 @@
     "start": "tsx index.ts"
   },
   "dependencies": {
-    "agent-sdk": "workspace:*",
+    "@weave-agent/core": "workspace:*",
     "dotenv": "^17.4.2",
     "zod": "^4.4.3"
   },

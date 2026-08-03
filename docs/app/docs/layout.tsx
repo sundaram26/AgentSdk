@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             nav={{
                 title: (
                     <span className="flex items-center gap-2 font-bold text-base tracking-tight text-neutral-900 dark:text-neutral-50">
-                        <span className="font-bold text-lg">[SDK Name]</span>
+                        <span className="font-bold text-lg">Weave</span>
                     </span>
                 ),
             }}

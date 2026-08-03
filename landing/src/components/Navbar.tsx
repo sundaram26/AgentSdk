@@ -7,7 +7,7 @@ export default function Navbar() {
       {/* Left */}
       <div className="flex-1">
         <span className="font-serif font-semibold tracking-widest text-ink uppercase text-sm" style={{ fontVariant: 'small-caps' }}>
-          Agent SDK
+          Weave
         </span>
       </div>
 

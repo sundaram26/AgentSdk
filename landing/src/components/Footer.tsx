@@ -9,7 +9,7 @@ export default function Footer() {
           Start building.
         </h2>
         <div className="mb-12 inline-block border border-line bg-surface rounded-full px-4 py-2">
-          <code className="font-mono text-sm text-ink">npm install agent-sdk</code>
+          <code className="font-mono text-sm text-ink">npm install @weave-agent/core</code>
         </div>
         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <a href="#docs" className="w-full sm:w-auto bg-ink text-surface rounded-full px-8 py-3 text-sm font-medium hover:opacity-90 transition-opacity">
@@ -26,7 +26,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto py-12 px-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
           
           <div className="font-serif font-semibold tracking-widest text-ink uppercase text-sm" style={{ fontVariant: 'small-caps' }}>
-            Agent SDK
+            Weave
           </div>
 
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-muted">

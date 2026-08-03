@@ -4,7 +4,7 @@ export default function Hero() {
   return (
     <section className="pt-32 pb-16 px-6 flex flex-col items-center text-center">
       <div className="font-mono text-xs text-muted uppercase tracking-widest mb-6">
-        TypeScript Agent SDK
+        TypeScript Weave
       </div>
       
       <h1 className="font-serif text-5xl md:text-7xl lg:text-[80px] leading-[1.1] text-ink max-w-4xl tracking-tight mb-8">

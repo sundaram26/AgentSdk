@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agent SDK | Engineered for Reasoning, Built for Production",
+  title: "Weave | Engineered for Reasoning, Built for Production",
   description: "A deterministic runtime for LLM agents — typed tools, provider fallback, and guardrails that can't be skipped.",
 };
 
