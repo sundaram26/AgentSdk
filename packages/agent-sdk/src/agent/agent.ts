@@ -27,10 +27,12 @@ export class Agent {
     private builderConfig: AgentBuilder;
     private activeContexts = new Map<string, RunContext>();
 
+    public readonly name: string;
     public readonly memory: MemoryManager;
 
     constructor(builder: AgentBuilder) {
         this.builderConfig = builder;
+        this.name = builder.sdkNameValue || 'Agent';
         this.runtime = new AgentRuntime(builder.llmPort!, builder.toolRegistry);
         this.memory = builder.memoryManager;
     }

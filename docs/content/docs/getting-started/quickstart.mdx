@@ -1,0 +1,72 @@
+---
+title: "Quickstart"
+description: "Build your first autonomous agent with tools and LLM execution in under 5 minutes."
+---
+
+# Quickstart
+
+This guide shows you how to define a single focused agent, bind tools with Zod validation, and run an execution loop using `[SDK Name]`.
+
+---
+
+## Define a Single Agent
+
+An agent is constructed using `AgentBuilder`. Pass system instructions, provider adapters, and registered tools:
+
+```typescript
+import { AgentBuilder, OpenAIAdapter, createTool } from '[SDK Name]';
+import { z } from 'zod';
+
+// 1. Define a tool with Zod schema validation
+const getWeather = createTool({
+  name: 'get_weather',
+  description: 'Return the weather for a given city.',
+  schema: z.object({
+    city: z.string().describe('City name, e.g. San Francisco'),
+  }),
+  async execute({ city }) {
+    return { location: city, temperature: '22°C', condition: 'Sunny' };
+  },
+});
+
+// 2. Instantiate LLM provider adapter
+const adapter = new OpenAIAdapter({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o',
+});
+
+// 3. Build the agent
+const agent = new AgentBuilder()
+  .name('Weather bot')
+  .instructions('You are a helpful travel assistant. Always use tools to verify weather.')
+  .llm(adapter)
+  .tools([getWeather])
+  .build();
+
+// 4. Execute a task
+async function main() {
+  const result = await agent.run('What is the weather in Tokyo right now?');
+  console.log(result.output);
+}
+
+main().catch(console.error);
+```
+
+---
+
+## Core Execution Flow
+
+```
+User Request ──► Agent (PLANNING) ──► LLM Tool Call ──► Tool Handler (EXECUTING) ──► FSM Verification ──► Final Result (DONE)
+```
+
+1. **Planning**: The agent sends conversation history, active instructions, and available tools to the LLM adapter.
+2. **Execution**: If the model requests tool calls, `[SDK Name]` validates arguments via Zod and executes tool handlers.
+3. **Verification**: Output is validated against guardrails and schemas before returning the final response.
+
+---
+
+## Next Steps
+
+- [Agent Definitions](/docs/core-concepts/agent-definitions) - Learn how to shape instructions, tools, and configurations.
+- [Models and Providers](/docs/core-concepts/models-and-providers) - Switch between OpenAI, Claude, and Gemini seamlessly.

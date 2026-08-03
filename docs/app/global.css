@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'fumadocs-ui/style.css';
+
+:root {
+  --fd-background: 0 0% 100%;
+  --fd-foreground: 224 71.4% 4.1%;
+  --fd-card: 0 0% 100%;
+  --fd-card-foreground: 224 71.4% 4.1%;
+  --fd-popover: 0 0% 100%;
+  --fd-popover-foreground: 224 71.4% 4.1%;
+  --fd-primary: 220.9 39.3% 11%;
+  --fd-primary-foreground: 210 20% 98%;
+  --fd-secondary: 220 14.3% 95.9%;
+  --fd-secondary-foreground: 220.9 39.3% 11%;
+  --fd-muted: 220 14.3% 95.9%;
+  --fd-muted-foreground: 220 8.9% 46.1%;
+  --fd-accent: 220 14.3% 95.9%;
+  --fd-accent-foreground: 220.9 39.3% 11%;
+  --fd-border: 220 13% 91%;
+  --fd-ring: 224 71.4% 4.1%;
+  --fd-radius: 0.5rem;
+}
+
+.dark {
+  --fd-background: 0 0% 2.5%;       /* Deep pitch black background */
+  --fd-foreground: 0 0% 98%;        /* High-contrast white text */
+  --fd-card: 0 0% 4.5%;
+  --fd-card-foreground: 0 0% 98%;
+  --fd-popover: 0 0% 4.5%;
+  --fd-popover-foreground: 0 0% 98%;
+  --fd-primary: 0 0% 98%;
+  --fd-primary-foreground: 0 0% 9%;
+  --fd-secondary: 0 0% 11%;
+  --fd-secondary-foreground: 0 0% 98%;
+  --fd-muted: 0 0% 11%;
+  --fd-muted-foreground: 0 0% 64%;
+  --fd-accent: 0 0% 11%;
+  --fd-accent-foreground: 0 0% 98%;
+  --fd-border: 0 0% 14%;            /* Clean subtle borders */
+  --fd-ring: 0 0% 83%;
+}
+
+/* Plus Jakarta Sans & JetBrains Mono Typography */
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Sidebar Section Category Headers (OpenAI Style) */
+.fd-sidebar-folder-title {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fd-muted-foreground);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* OpenAI Style Rounded Active Sidebar Pill */
+.dark [aria-current="page"] {
+  background-color: #222222 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 0.5rem !important;
+}
+
+[aria-current="page"] {
+  background-color: #e5e7eb !important;
+  color: #09090b !important;
+  font-weight: 600 !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Code Block Polish */
+pre, code {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-feature-settings: "calt" 1;
+}
+
+pre {
+  border: 1px solid var(--fd-border) !important;
+  border-radius: 0.75rem !important;
+}
+
+.dark pre {
+  background-color: #080808 !important;
+}
+
+/* Headings Polish */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Clean Callout */
+.fd-callout {
+  border-radius: 0.75rem;
+  border: 1px solid var(--fd-border);
+}

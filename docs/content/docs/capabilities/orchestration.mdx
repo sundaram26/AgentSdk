@@ -1,0 +1,60 @@
+---
+title: "Orchestration & Multi-Agent Handoffs"
+description: "Decompose complex workflows into specialized sub-agents with context-preserving handoffs."
+---
+
+# Orchestration & Multi-Agent Handoffs
+
+Orchestration enables multi-agent routing where a primary triage agent dynamically transfers execution to specialized sub-agents (e.g. `BillingAgent`, `TechSupportAgent`), preserving conversation context across transfers.
+
+---
+
+## Defining Multi-Agent Sub-Agents
+
+Configure multi-agent routing using `.subAgents([])` and customize delegation bounds with `.maxHandoffDepth()`:
+
+```typescript
+import { AgentBuilder, OpenAIAdapter } from '[SDK Name]';
+
+const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
+
+// 1. Specialized Sub-Agents
+const billingAgent = new AgentBuilder()
+  .name('BillingAgent')
+  .instructions('Handle subscription upgrades, invoices, and payment refunds.')
+  .llm(adapter)
+  .build();
+
+const techAgent = new AgentBuilder()
+  .name('TechSupportAgent')
+  .instructions('Debug API integration errors and code bugs.')
+  .llm(adapter)
+  .build();
+
+// 2. Primary Triage Agent
+const triageAgent = new AgentBuilder()
+  .name('TriageAgent')
+  .instructions('Route customer inquiries to BillingAgent or TechSupportAgent based on intent.')
+  .llm(adapter)
+  .subAgents([billingAgent, techAgent])
+  .maxHandoffDepth(5) // Customize max delegation depth (defaults to 3)
+  .build();
+
+async function run() {
+  const result = await triageAgent.run('I need a copy of my invoice for last month.');
+
+  console.log(`Active Responding Agent: ${result.activeAgentName}`);
+  console.log(`Response: ${result.output}`);
+  console.log(`Handoff Path: ${result.handoffHistory?.join(' -> ')}`);
+}
+
+run().catch(console.error);
+```
+
+---
+
+## Delegation Bounds & Best Practices
+
+1. **Default Bounds for Production Safety**: Handoff depth defaults to `3` delegation layers to protect applications against infinite routing loops.
+2. **Customizable Depth**: Developers can scale delegation depth via `.maxHandoffDepth(N)` for deep multi-tier organizational routing.
+3. **Automatic Context Forwarding**: Conversation history is preserved automatically when handoffs execute across sub-agents.

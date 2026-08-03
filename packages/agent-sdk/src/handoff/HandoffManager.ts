@@ -9,6 +9,11 @@ import type { Message } from '../llm/types.js';
 
 export class HandoffManager {
     private agents = new Map<string, Agent>();
+    public maxHandoffDepth: number = 3;
+
+    public setMaxHandoffDepth(depth: number): void {
+        this.maxHandoffDepth = depth;
+    }
 
     public registerAgent(name: string, agent: Agent): void {
         if (name === HANDOFF_TOOL_NAME) {
@@ -32,7 +37,7 @@ export class HandoffManager {
         return this.agents.get(name);
     }
 
-    public getHandoffTool(): AnyToolCommand {
+    public getHandoffTool(currentDepth: number = 0): AnyToolCommand {
         const availableAgents = this.getRegisteredNames();
         const description = `Transfers the conversation execution to a specialized target agent. Available target agents: ${availableAgents.map((a) => `'${a}'`).join(', ')}`;
 
@@ -44,6 +49,12 @@ export class HandoffManager {
                 reason: z.string().describe('Reason for handoff'),
             }),
             execute: async (input: HandoffToolInput): Promise<RunResult> => {
+                if (currentDepth >= this.maxHandoffDepth) {
+                    throw new Error(
+                        `Handoff failed: Maximum handoff depth of ${this.maxHandoffDepth} reached.`
+                    );
+                }
+
                 const target = this.agents.get(input.targetAgent);
                 if (!target) {
                     throw new Error(
@@ -57,7 +68,11 @@ export class HandoffManager {
         });
     }
 
-    public async executeHandoff(payload: HandoffPayload, history?: Message[]): Promise<RunResult> {
+    public async executeHandoff(payload: HandoffPayload, history?: Message[], currentDepth: number = 0): Promise<RunResult> {
+        if (currentDepth >= this.maxHandoffDepth) {
+            throw new Error(`Handoff failed: Maximum handoff depth of ${this.maxHandoffDepth} reached.`);
+        }
+
         const target = this.agents.get(payload.targetAgent);
         if (!target) {
             throw new Error(`Target agent '${payload.targetAgent}' not found in HandoffManager.`);

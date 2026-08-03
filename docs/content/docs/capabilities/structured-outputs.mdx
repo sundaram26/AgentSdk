@@ -1,0 +1,43 @@
+---
+title: "Structured Outputs & Self-Repair"
+description: "Enforce strict Zod JSON schemas with automated LLM self-repair retry loops."
+---
+
+# Structured Outputs & Self-Repair
+
+Structured Outputs guarantee that agent text responses conform exactly to a strongly typed Zod schema, triggering automatic LLM self-repair retries when validation errors occur.
+
+---
+
+## Defining an Output Schema
+
+```typescript
+import { AgentBuilder, OpenAIAdapter } from '[SDK Name]';
+import { z } from 'zod';
+
+const ExtractionSchema = z.object({
+  entityName: z.string(),
+  category: z.enum(['technology', 'finance', 'healthcare']),
+  confidenceScore: z.number().min(0).max(1),
+});
+
+type Extraction = z.infer<typeof ExtractionSchema>;
+
+const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
+
+const agent = new AgentBuilder()
+  .name('Extractor')
+  .instructions('Extract structured classification metadata from raw input text.')
+  .llm(adapter)
+  .outputSchema(ExtractionSchema)
+  .maxSchemaRetries(3)
+  .build();
+
+async function run() {
+  const result = await agent.run('Acme Corp is a high-growth technology startup.');
+  const data: Extraction = JSON.parse(result.output);
+  console.log(`Extracted Category: ${data.category} (Score: ${data.confidenceScore})`);
+}
+
+run().catch(console.error);
+```

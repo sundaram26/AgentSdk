@@ -108,6 +108,26 @@ export class AgentBuilder {
         return this;
     }
 
+    public subAgents(agents: Agent[] | Record<string, Agent>): this {
+        if (Array.isArray(agents)) {
+            for (const agent of agents) {
+                if (agent && typeof agent.name === 'string') {
+                    this.handoffManager.registerAgent(agent.name, agent);
+                }
+            }
+        } else if (agents && typeof agents === 'object') {
+            for (const [name, agent] of Object.entries(agents)) {
+                this.handoffManager.registerAgent(name, agent);
+            }
+        }
+        return this;
+    }
+
+    public maxHandoffDepth(depth: number): this {
+        this.handoffManager.setMaxHandoffDepth(depth);
+        return this;
+    }
+
     public memory(storeOrOptions: MemoryStore | MemoryOptions): this {
         this.memoryManager = new MemoryManager(storeOrOptions);
         return this;

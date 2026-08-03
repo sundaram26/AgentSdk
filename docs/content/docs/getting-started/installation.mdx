@@ -1,0 +1,73 @@
+---
+title: "Installation & Setup"
+description: "Install [SDK Name] and configure your TypeScript project environment."
+---
+
+# Installation & Setup
+
+`[SDK Name]` is published as a zero-dependency TypeScript package compatible with Node.js 18+, Deno, and Bun.
+
+---
+
+## Package Installation
+
+Install `[SDK Name]` alongside `zod` using your package manager of choice:
+
+<Tabs items={['pnpm', 'npm', 'yarn', 'bun']}>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add [SDK Name] zod
+    ```
+  </Tab>
+  <Tab value="npm">
+    ```bash
+    npm install [SDK Name] zod
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add [SDK Name] zod
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add [SDK Name] zod
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Environment Credentials
+
+Configure your API secret keys in your backend environment:
+
+```bash
+# OpenAI Provider Key
+OPENAI_API_KEY="sk-proj-..."
+
+# Anthropic Claude Provider Key
+ANTHROPIC_API_KEY="sk-ant-..."
+
+# Google Gemini Provider Key
+GEMINI_API_KEY="AIzaSy..."
+```
+
+---
+
+## TypeScript Configuration
+
+Ensure your `tsconfig.json` targets `ES2022` or higher with strict type checks enabled:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}
+```

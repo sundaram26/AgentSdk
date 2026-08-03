@@ -1,0 +1,105 @@
+---
+title: "Models and Providers"
+description: "Configure OpenAI, Anthropic Claude, and Google Gemini model drivers with automatic multi-provider failover."
+---
+
+# Models and Providers
+
+`[SDK Name]` is model-agnostic. All provider drivers share a unified interface, allowing you to switch between OpenAI, Anthropic Claude, and Google Gemini models seamlessly without changing any tool logic or agent code.
+
+---
+
+## Configuring Model Providers
+
+Pass your API credentials and model configuration options to the corresponding provider adapter:
+
+<Tabs items={['OpenAI', 'Anthropic Claude', 'Google Gemini']}>
+  <Tab value="OpenAI">
+    ```typescript
+    import { OpenAIAdapter } from '[SDK Name]';
+
+    const adapter = new OpenAIAdapter({
+      apiKey: process.env.OPENAI_API_KEY!,
+      model: 'gpt-4o',
+      temperature: 0.2,
+    });
+    ```
+  </Tab>
+  <Tab value="Anthropic Claude">
+    ```typescript
+    import { ClaudeAdapter } from '[SDK Name]';
+
+    const adapter = new ClaudeAdapter({
+      apiKey: process.env.ANTHROPIC_API_KEY!,
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 4096,
+    });
+    ```
+  </Tab>
+  <Tab value="Google Gemini">
+    ```typescript
+    import { GeminiAdapter } from '[SDK Name]';
+
+    const adapter = new GeminiAdapter({
+      apiKey: process.env.GEMINI_API_KEY!,
+      model: 'gemini-1.5-pro',
+    });
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Multi-Provider Failover with `FallbackChain`
+
+Achieve zero-downtime reliability by configuring an automatic failover chain across providers. If the primary provider experiences rate limits or outages, execution automatically fails over to secondary models:
+
+```typescript
+import { AgentBuilder, FallbackChain, OpenAIAdapter, ClaudeAdapter } from '[SDK Name]';
+
+const primaryModel = new OpenAIAdapter({
+  apiKey: process.env.OPENAI_API_KEY!,
+  model: 'gpt-4o',
+});
+
+const fallbackModel = new ClaudeAdapter({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+  model: 'claude-3-5-sonnet-20241022',
+});
+
+// Configure automatic failover
+const llm = new FallbackChain({
+  adapters: [primaryModel, fallbackModel],
+  maxRetriesPerAdapter: 2,
+});
+
+const agent = new AgentBuilder()
+  .name('HighAvailabilityAgent')
+  .llm(llm)
+  .build();
+```
+
+---
+
+## Writing a Custom Provider Adapter
+
+To integrate custom fine-tuned models, local Ollama instances, or internal endpoints, implement a custom adapter:
+
+```typescript
+import { LLMPort, Message, LLMOptions, LLMResponse } from '[SDK Name]';
+
+export class CustomLocalAdapter implements LLMPort {
+  readonly providerName = 'custom-local';
+
+  async generate(messages: Message[], options?: LLMOptions): Promise<LLMResponse> {
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'llama3', messages }),
+    });
+
+    const data = await res.json();
+    return { content: data.message.content, toolCalls: [] };
+  }
+}
+```

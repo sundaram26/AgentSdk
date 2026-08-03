@@ -1,0 +1,48 @@
+---
+title: "Executable Examples Workspace"
+description: "Overview of runnable example projects in the examples/ workspace directory."
+---
+
+# Executable Examples Workspace
+
+The `[SDK Name]` repository includes a dedicated `examples/` workspace containing standalone, production-ready code projects demonstrating core capabilities.
+
+---
+
+## Workspace Index
+
+| Example Project | Demonstrated Feature | Source Path | CLI Run Command |
+|---|---|---|---|
+| **basic-agent** | Single tool registration, debug logger, trace metrics | `examples/basic-agent/index.ts` | `pnpm --filter basic-agent start` |
+| **multi-agent-handoff** | Sub-agent routing and context preservation | `examples/multi-agent-handoff/index.ts` | `pnpm --filter multi-agent-handoff start` |
+| **structured-output** | Zod output validation and automated self-repair | `examples/structured-output/index.ts` | `pnpm --filter structured-output start` |
+| **streaming-chat** | Async event stream iteration via `agent.stream()` | `examples/streaming-chat/index.ts` | `pnpm --filter streaming-chat start` |
+
+---
+
+## Running Examples Locally
+
+To run any example project on your local machine:
+
+<Steps>
+  <Step>
+    ### Clone Repository & Install Dependencies
+    ```bash
+    git clone https://github.com/sundaram26/AgentSdk.git
+    cd AgentSdk
+    pnpm install
+    ```
+  </Step>
+  <Step>
+    ### Set Environment API Keys
+    ```bash
+    export OPENAI_API_KEY="sk-proj-..."
+    ```
+  </Step>
+  <Step>
+    ### Run Target Example
+    ```bash
+    pnpm --filter basic-agent start
+    ```
+  </Step>
+</Steps>
