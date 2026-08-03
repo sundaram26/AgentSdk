@@ -8,7 +8,11 @@
     "build": "pnpm --filter agent-sdk build",
     "typecheck": "pnpm --filter agent-sdk typecheck",
     "audit:types": "pnpm --filter agent-sdk audit:types",
-    "test": "pnpm --filter agent-sdk test"
+    "test": "pnpm --filter agent-sdk test",
+    "dev": "pnpm -r --parallel run dev",
+    "dev:landing": "pnpm --filter landing dev",
+    "build:landing": "pnpm --filter landing build",
+    "start:landing": "pnpm --filter landing start"
   },
   "devDependencies": {
     "pnpm": "^10.16.1",
