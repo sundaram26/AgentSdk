@@ -40,3 +40,8 @@ pnpm-debug.log*
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Project-specific non-essential files
+completed.md
+test-eg-bench-docs.md
+runtime-state-machine.mermaid
