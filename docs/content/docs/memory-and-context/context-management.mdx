@@ -1,0 +1,27 @@
+---
+title: "Context Window Management"
+description: "Prevent context overflow and reduce token API overhead."
+---
+
+# Context Window Management
+
+Prevent context window overflow and manage token usage efficiently.
+
+## Pruning Context
+
+```typescript
+import { ContextPruner } from 'Weave';
+
+const pruner = new ContextPruner({
+  maxTokens: 4000,
+  preserveSystemInstructions: true,
+  preserveRecentMessages: 6,
+  strategy: 'sliding-window',
+});
+
+const agent = new AgentBuilder()
+  .name('PrunedAgent')
+  .llm(adapter)
+  .contextPruner(pruner)
+  .build();
+```

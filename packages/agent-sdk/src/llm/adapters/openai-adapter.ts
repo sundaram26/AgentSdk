@@ -1,14 +1,14 @@
-import OpenAI from 'openai';
+import type OpenAI from 'openai';
 import type { LLMPort } from '../LLMPort.js';
 import type { Message, LLMOptions, LLMResponse, AdapterOptions, ToolCallInfo } from '../types.js';
 
 export class OpenAIAdapter implements LLMPort {
     public readonly providerName = 'openai';
-    private client: OpenAI;
+    private clientPromise: Promise<OpenAI>;
 
     constructor(options?: AdapterOptions | string) {
         const apiKey = typeof options === 'string' ? options : options?.apiKey;
-        this.client = new OpenAI({ apiKey });
+        this.clientPromise = import('openai').then(mod => new mod.default({ apiKey }));
     }
 
     private formatMessages(messages: Message[]): OpenAI.Chat.ChatCompletionMessageParam[] {
@@ -56,7 +56,8 @@ export class OpenAIAdapter implements LLMPort {
             }));
         }
 
-        const response = await this.client.chat.completions.create(params);
+        const client = await this.clientPromise;
+        const response = await client.chat.completions.create(params);
         const choice = response.choices[0];
         const message = choice?.message;
 
@@ -93,7 +94,8 @@ export class OpenAIAdapter implements LLMPort {
         if (options.temperature !== undefined) params.temperature = options.temperature;
         if (options.maxTokens !== undefined) params.max_tokens = options.maxTokens;
 
-        const stream = await this.client.chat.completions.create(params);
+        const client = await this.clientPromise;
+        const stream = await client.chat.completions.create(params);
 
         for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content || '';

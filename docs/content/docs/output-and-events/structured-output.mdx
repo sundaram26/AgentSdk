@@ -1,13 +1,11 @@
 ---
-title: "Structured Output & Streaming"
-description: "Force JSON schema compliance and stream token responses."
+title: "Structured Output"
+description: "Force JSON schema compliance."
 ---
 
-# Structured Outputs & Self-Repair
+# Structured Outputs
 
-Structured Outputs guarantee that agent text responses conform exactly to a strongly typed Zod schema, triggering automatic LLM self-repair retries when validation errors occur.
-
----
+Structured Outputs guarantee that agent text responses conform exactly to a strongly typed Zod schema, triggering automatic self-repair retries when validation errors occur.
 
 ## Defining an Output Schema
 
@@ -41,6 +39,3 @@ async function run() {
 
 run().catch(console.error);
 ```
-
----
-

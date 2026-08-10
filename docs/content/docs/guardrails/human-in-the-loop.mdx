@@ -1,0 +1,29 @@
+---
+title: "Human-in-the-Loop"
+description: "Pause execution for human approval."
+---
+
+# Human-in-the-Loop
+
+Implement workflows that require human confirmation before executing high-risk actions.
+
+## Approval Gating
+
+```typescript
+import { ApprovalGate } from 'Weave';
+
+const approvalGate = new ApprovalGate({
+  requireApprovalFor: ['delete_database', 'execute_payment'],
+  async onApprovalRequested(action) {
+    console.log(`[APPROVAL REQUIRED]: Tool ${action.toolName} needs human confirmation.`);
+    // Return false to reject, or pause and ask the user
+    return false; 
+  },
+});
+
+const agent = new AgentBuilder()
+  .name('SecureAgent')
+  .llm(adapter)
+  .approvalGate(approvalGate)
+  .build();
+```

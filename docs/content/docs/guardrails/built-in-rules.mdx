@@ -1,13 +1,11 @@
 ---
-title: "Guardrails"
+title: "Built-in Rules"
 description: "Protect your application with pre-and-post execution safety policies."
 ---
 
-# Guardrails & Safety
+# Built-in Rules
 
-Guardrails protect agents against malicious prompt injections, sensitive data leakage, toxic outputs, and unauthorized tool calls by evaluating safety policies in the `VERIFYING` state.
-
----
+Guardrails protect agents against malicious prompt injections, sensitive data leakage, toxic outputs, and unauthorized tool calls.
 
 ## Configuring a Guardrail Pipeline
 
@@ -16,27 +14,17 @@ import {
   AgentBuilder,
   OpenAIAdapter,
   GuardrailPipeline,
-  ApprovalGate,
   PromptInjectionRule,
   PIIRedactionRule,
   ToolBoundaryRule,
 } from 'Weave';
 
-// 1. Construct multi-rule Guardrail Pipeline
+// Construct multi-rule Guardrail Pipeline
 const guardrails = new GuardrailPipeline([
   new PromptInjectionRule({ threshold: 0.85 }),
   new PIIRedactionRule({ maskTypes: ['EMAIL', 'SSN', 'CREDIT_CARD'] }),
   new ToolBoundaryRule({ allowedTools: ['get_weather', 'search_docs'] }),
 ]);
-
-// 2. Human-in-the-loop Approval Gate
-const approvalGate = new ApprovalGate({
-  requireApprovalFor: ['delete_database', 'execute_payment'],
-  async onApprovalRequested(action) {
-    console.log(`[APPROVAL REQUIRED]: Tool ${action.toolName} needs human confirmation.`);
-    return false; // Reject execution
-  },
-});
 
 const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
 
@@ -44,7 +32,6 @@ const agent = new AgentBuilder()
   .name('SecureAgent')
   .llm(adapter)
   .guardrails(guardrails)
-  .approvalGate(approvalGate)
   .build();
 
 async function run() {
@@ -54,6 +41,3 @@ async function run() {
 
 run().catch(console.error);
 ```
-
----
-

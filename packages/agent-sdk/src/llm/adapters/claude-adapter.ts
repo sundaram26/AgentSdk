@@ -1,14 +1,14 @@
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { LLMPort } from '../LLMPort.js';
 import type { Message, LLMOptions, LLMResponse, AdapterOptions, ToolCallInfo } from '../types.js';
 
 export class ClaudeAdapter implements LLMPort {
     public readonly providerName = 'claude';
-    private client: Anthropic;
+    private clientPromise: Promise<Anthropic>;
 
     constructor(options?: AdapterOptions | string) {
         const apiKey = typeof options === 'string' ? options : options?.apiKey;
-        this.client = new Anthropic({ apiKey });
+        this.clientPromise = import('@anthropic-ai/sdk').then(mod => new mod.default({ apiKey }));
     }
 
     private formatMessages(messages: Message[]): { system?: string; messages: Anthropic.MessageParam[] } {
@@ -82,7 +82,8 @@ export class ClaudeAdapter implements LLMPort {
             }));
         }
 
-        const response = await this.client.messages.create(params);
+        const client = await this.clientPromise;
+        const response = await client.messages.create(params);
 
         let text = '';
         const toolCalls: ToolCallInfo[] = [];
@@ -117,7 +118,8 @@ export class ClaudeAdapter implements LLMPort {
         if (system !== undefined) params.system = system;
         if (options.temperature !== undefined) params.temperature = options.temperature;
 
-        const stream = await this.client.messages.create(params);
+        const client = await this.clientPromise;
+        const stream = await client.messages.create(params);
 
         for await (const event of stream) {
             if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'fumadocs-ui/style.css';
 
 :root {
@@ -40,9 +39,9 @@
   --fd-ring: 0 0% 83%;
 }
 
-/* Plus Jakarta Sans & JetBrains Mono Typography */
+/* Geist Typography */
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
 }
@@ -75,18 +74,13 @@ body {
 
 /* Code Block Polish */
 pre, code {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: var(--font-geist-mono), monospace !important;
   font-feature-settings: "calt" 1;
 }
 
-pre {
-  border: 1px solid var(--fd-border) !important;
-  border-radius: 0.75rem !important;
-}
-
-.dark pre {
-  background-color: #080808 !important;
-}
+/* Note: Removed custom borders/backgrounds on <pre>. 
+   Fumadocs already wraps code blocks in a styled <figure> container. 
+   Styling <pre> directly was causing a "box-in-a-box" issue with extra padding. */
 
 /* Headings Polish */
 h1, h2, h3, h4 {

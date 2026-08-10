@@ -1,0 +1,8 @@
+{
+  "title": "Core Concepts",
+  "pages": [
+    "agent-configuration",
+    "agent-lifecycle",
+    "models-and-routing"
+  ]
+}

@@ -1,15 +1,14 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { ModelParams, GenerationConfig, GenerateContentRequest, Content, FunctionDeclaration } from '@google/generative-ai';
+import type { GoogleGenerativeAI, ModelParams, GenerationConfig, GenerateContentRequest, Content, FunctionDeclaration } from '@google/generative-ai';
 import type { LLMPort } from '../LLMPort.js';
 import type { Message, LLMOptions, LLMResponse, AdapterOptions, ToolCallInfo } from '../types.js';
 
 export class GeminiAdapter implements LLMPort {
     public readonly providerName = 'gemini';
-    private client: GoogleGenerativeAI;
+    private clientPromise: Promise<GoogleGenerativeAI>;
 
     constructor(options?: AdapterOptions | string) {
         const apiKey = typeof options === 'string' ? options : options?.apiKey;
-        this.client = new GoogleGenerativeAI(apiKey || process.env.GEMINI_API_KEY || '');
+        this.clientPromise = import('@google/generative-ai').then(mod => new mod.GoogleGenerativeAI(apiKey || process.env.GEMINI_API_KEY || ''));
     }
 
     private formatMessages(messages: Message[]): { systemInstruction?: string; contents: Content[] } {
@@ -86,7 +85,8 @@ export class GeminiAdapter implements LLMPort {
             }];
         }
 
-        const model = this.client.getGenerativeModel(modelParams);
+        const client = await this.clientPromise;
+        const model = client.getGenerativeModel(modelParams);
 
         const generationConfig: GenerationConfig = {};
         if (options.temperature !== undefined) generationConfig.temperature = options.temperature;
@@ -133,7 +133,8 @@ export class GeminiAdapter implements LLMPort {
 
         const modelParams: ModelParams = { model: options.model };
         if (systemInstruction !== undefined) modelParams.systemInstruction = systemInstruction;
-        const model = this.client.getGenerativeModel(modelParams);
+        const client = await this.clientPromise;
+        const model = client.getGenerativeModel(modelParams);
 
         const generationConfig: GenerationConfig = {};
         if (options.temperature !== undefined) generationConfig.temperature = options.temperature;

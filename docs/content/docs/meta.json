@@ -4,11 +4,12 @@
   "pages": [
     "installation",
     "quick-start",
-    "tools-handoffs",
+    "core-concepts",
+    "memory-and-context",
+    "tools-and-handoffs",
     "guardrails",
-    "memory-sessions",
-    "structured-output-streaming",
-    "tracing-error-handling",
+    "output-and-events",
+    "observability",
     "examples"
   ]
 }
