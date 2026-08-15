@@ -1,9 +1,11 @@
-# 🤖 Agent SDK (TypeScript)
+# ⚡ Arclet (`@arclet/core`)
 
-[![npm version](https://badge.fury.io/js/agent-sdk.svg)](https://badge.fury.io/js/agent-sdk) [![CI](https://github.com/agent-sdk/agent-sdk/actions/workflows/test.yml/badge.svg)](https://github.com/agent-sdk/agent-sdk/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/@arclet/core.svg?color=blue)](https://www.npmjs.com/package/@arclet/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg)](https://www.typescriptlang.org/)
+[![Website](https://img.shields.io/badge/Website-arclet.cc-black)](https://arclet.cc)
 
-The Agent SDK is a lightweight yet powerful framework for building multi-agent workflows natively in TypeScript. It is designed with a robust finite state machine, ports & adapters architecture, multi-tier memory, and provider-agnostic support (OpenAI, Claude, Gemini).
+**Arclet** is a lightweight, deterministic TypeScript AI agent runtime built with a finite state machine, ports & adapters architecture, multi-tier cognitive memory, and provider-agnostic support (OpenAI, Anthropic Claude, Google Gemini).
 
 ---
 
@@ -26,14 +28,14 @@ The Agent SDK is a lightweight yet powerful framework for building multi-agent w
 Install the package via `pnpm` (or your preferred package manager):
 
 ```bash
-pnpm add agent-sdk
+pnpm add @arclet/core zod
 pnpm add -D typescript tsx
 ```
 
 ### Basic Example
 
 ```typescript
-import { createAgent, createTool, OpenAIAdapter } from 'agent-sdk';
+import { createAgent, createTool, OpenAIAdapter } from '@arclet/core';
 import { z } from 'zod';
 
 // 1. Define a tool with strict input validation

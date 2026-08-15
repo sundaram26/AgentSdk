@@ -1,0 +1,91 @@
+# Arclet Full Developer Documentation (`@arclet/core`)
+
+Arclet is a deterministic AI agent runtime engineered for TypeScript.
+
+## 1. Installation
+```bash
+npm install @arclet/core zod
+# Optional provider drivers:
+npm install openai @anthropic-ai/sdk @google/generative-ai
+```
+
+## 2. Core Architecture
+- **State Machine**: The runtime strictly enforces state transitions:
+  1. `PLANNING`: Generates next step or tool call via LLM.
+  2. `EXECUTING`: Dispatches validated tools.
+  3. `VERIFYING`: Tests output against schemas and guardrails.
+  4. `AWAITING_APPROVAL`: Halts execution for human-in-the-loop review.
+  5. `DONE`: Terminal success.
+  6. `FAILED`: Terminal error or max turns exceeded.
+
+- **Ports & Adapters**: LLMs implement the `LLMPort` interface:
+  - `OpenAIAdapter`: Supports GPT-4o, GPT-4-turbo, o1, o3-mini.
+  - `ClaudeAdapter`: Supports Claude 3.5 Sonnet, Haiku, Opus.
+  - `GeminiAdapter`: Supports Gemini 1.5 Pro, Flash, Gemini 2.0.
+  - `FallbackChain`: Chains multiple adapters with retry and automatic failover.
+
+## 3. Tool Registration & Type Safety
+Tools use Zod schemas for input validation:
+```typescript
+import { createTool } from '@arclet/core';
+import { z } from 'zod';
+
+export const calculateTax = createTool({
+  name: 'calculate_tax',
+  description: 'Calculate tax for an amount and region',
+  inputSchema: z.object({
+    amount: z.number().positive(),
+    region: z.enum(['US-CA', 'US-NY', 'EU-DE'])
+  }),
+  execute: async ({ amount, region }) => {
+    const rates: Record<string, number> = { 'US-CA': 0.0825, 'US-NY': 0.08875, 'EU-DE': 0.19 };
+    return { tax: amount * (rates[region] ?? 0.1) };
+  }
+});
+```
+
+## 4. Multi-Agent Handoffs
+Agents can act as sub-agents to create hierarchical multi-agent teams with max handoff depth limits:
+```typescript
+import { createAgent } from '@arclet/core';
+
+const researcher = createAgent().name('Researcher').llm(openai).build();
+const writer = createAgent()
+  .name('Writer')
+  .llm(claude)
+  .subAgent('Researcher', researcher)
+  .maxHandoffDepth(3)
+  .build();
+```
+
+## 5. Guardrail Pipeline & Human-in-the-Loop
+```typescript
+import { GuardrailPipeline, PromptInjectionRule, PIIRedactionRule, ApprovalGate } from '@arclet/core';
+
+const agent = createAgent()
+  .inputGuardrail(new PromptInjectionRule({ threshold: 0.85 }))
+  .outputGuardrail(new PIIRedactionRule({ maskTypes: ['EMAIL', 'SSN', 'CREDIT_CARD'] }))
+  .approvalGate(new ApprovalGate({
+    requireApprovalFor: ['delete_record', 'transfer_funds']
+  }))
+  .build();
+```
+
+## 6. Memory Engine
+```typescript
+import { createAgent, FileMemoryStore } from '@arclet/core';
+
+const agent = createAgent()
+  .memory({
+    store: new FileMemoryStore('./.sessions'),
+    autoExtractFacts: true,
+    autoSummarizeEpisodes: true
+  })
+  .build();
+```
+
+## Links & Community
+- Main Website: https://arclet.cc
+- Docs: https://docs.arclet.cc
+- NPM: https://www.npmjs.com/package/@arclet/core
+- GitHub: https://github.com/sundaram26/AgentSdk

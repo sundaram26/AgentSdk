@@ -5,7 +5,7 @@ description: "Learn the core concepts and get your first agent running."
 
 # Quickstart
 
-This guide shows you how to define a single focused agent, bind tools with Zod validation, and run an execution loop using `Weave`.
+This guide shows you how to define a single focused agent, bind tools with Zod validation, and run an execution loop using `Arclet`.
 
 ---
 
@@ -14,7 +14,7 @@ This guide shows you how to define a single focused agent, bind tools with Zod v
 An agent is constructed using `AgentBuilder`. Pass system instructions, provider adapters, and registered tools:
 
 ```typescript
-import { AgentBuilder, OpenAIAdapter, createTool } from 'Weave';
+import { AgentBuilder, OpenAIAdapter, createTool } from '@arclet/core';
 import { z } from 'zod';
 
 // 1. Define a tool with Zod schema validation
@@ -61,7 +61,7 @@ User Request ──► Agent (PLANNING) ──► LLM Tool Call ──► Tool H
 ```
 
 1. **Planning**: The agent sends conversation history, active instructions, and available tools to the LLM adapter.
-2. **Execution**: If the model requests tool calls, `Weave` validates arguments via Zod and executes tool handlers.
+2. **Execution**: If the model requests tool calls, `Arclet` validates arguments via Zod and executes tool handlers.
 3. **Verification**: Output is validated against guardrails and schemas before returning the final response.
 
 ---
@@ -84,7 +84,7 @@ An **Agent** is an autonomous entity configured with specific instructions, prov
 Use `AgentBuilder` to configure single agents cleanly:
 
 ```typescript
-import { AgentBuilder, OpenAIAdapter, createTool } from 'Weave';
+import { AgentBuilder, OpenAIAdapter, createTool } from '@arclet/core';
 import { z } from 'zod';
 
 const searchDocsTool = createTool({
@@ -129,7 +129,7 @@ Three configuration choices deserve extra care:
 Tools provide external capabilities (API queries, database operations, mathematical calculations) to agents:
 
 ```typescript
-import { createTool, ToolError } from 'Weave';
+import { createTool, ToolError } from '@arclet/core';
 import { z } from 'zod';
 
 export const getUserTool = createTool({
@@ -155,7 +155,7 @@ export const getUserTool = createTool({
 
 # Running Agents & State Machine
 
-Unlike unconstrained loops that rely on fragile text parsing, `Weave` runs every agent execution inside a **Deterministic Finite State Machine (FSM)** driven by `RunStateMachine`.
+Unlike unconstrained loops that rely on fragile text parsing, `Arclet` runs every agent execution inside a **Deterministic Finite State Machine (FSM)** driven by `RunStateMachine`.
 
 ---
 
@@ -177,7 +177,7 @@ import { HeroDiagram } from '@/app/components/HeroDiagram';
 ## Code Example: Running an Agent
 
 ```typescript
-import { AgentBuilder, OpenAIAdapter } from 'Weave';
+import { AgentBuilder, OpenAIAdapter } from '@arclet/core';
 
 const adapter = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY!, model: 'gpt-4o' });
 
@@ -209,7 +209,7 @@ run().catch(console.error);
 
 # Models and Providers
 
-`Weave` is model-agnostic. All provider drivers share a unified interface, allowing you to switch between OpenAI, Anthropic Claude, and Google Gemini models seamlessly without changing any tool logic or agent code.
+`Arclet` is model-agnostic. All provider drivers share a unified interface, allowing you to switch between OpenAI, Anthropic Claude, and Google Gemini models seamlessly without changing any tool logic or agent code.
 
 ---
 
@@ -220,7 +220,7 @@ Pass your API credentials and model configuration options to the corresponding p
 <Tabs items={['OpenAI', 'Anthropic Claude', 'Google Gemini']}>
   <Tab value="OpenAI">
     ```typescript
-    import { OpenAIAdapter } from 'Weave';
+    import { OpenAIAdapter } from '@arclet/core';
 
     const adapter = new OpenAIAdapter({
       apiKey: process.env.OPENAI_API_KEY!,
@@ -231,7 +231,7 @@ Pass your API credentials and model configuration options to the corresponding p
   </Tab>
   <Tab value="Anthropic Claude">
     ```typescript
-    import { ClaudeAdapter } from 'Weave';
+    import { ClaudeAdapter } from '@arclet/core';
 
     const adapter = new ClaudeAdapter({
       apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -242,7 +242,7 @@ Pass your API credentials and model configuration options to the corresponding p
   </Tab>
   <Tab value="Google Gemini">
     ```typescript
-    import { GeminiAdapter } from 'Weave';
+    import { GeminiAdapter } from '@arclet/core';
 
     const adapter = new GeminiAdapter({
       apiKey: process.env.GEMINI_API_KEY!,
@@ -259,7 +259,7 @@ Pass your API credentials and model configuration options to the corresponding p
 Achieve zero-downtime reliability by configuring an automatic failover chain across providers. If the primary provider experiences rate limits or outages, execution automatically fails over to secondary models:
 
 ```typescript
-import { AgentBuilder, FallbackChain, OpenAIAdapter, ClaudeAdapter } from 'Weave';
+import { AgentBuilder, FallbackChain, OpenAIAdapter, ClaudeAdapter } from '@arclet/core';
 
 const primaryModel = new OpenAIAdapter({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -290,7 +290,7 @@ const agent = new AgentBuilder()
 To integrate custom fine-tuned models, local Ollama instances, or internal endpoints, implement a custom adapter:
 
 ```typescript
-import { LLMPort, Message, LLMOptions, LLMResponse } from 'Weave';
+import { LLMPort, Message, LLMOptions, LLMResponse } from '@arclet/core';
 
 export class CustomLocalAdapter implements LLMPort {
   readonly providerName = 'custom-local';
@@ -312,7 +312,7 @@ export class CustomLocalAdapter implements LLMPort {
 
 # API Reference
 
-Complete reference table of all public module exports provided by `Weave`. All symbols are exported directly from `Weave`.
+Complete reference table of all public module exports provided by `Arclet`. All symbols are exported directly from `@arclet/core`.
 
 ---
 

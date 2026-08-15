@@ -5,33 +5,33 @@ description: "Get started by installing the SDK."
 
 ## Overview
 
-Weave is published as a zero-dependency TypeScript package, compatible with Node.js 18+, Deno, and Bun.
+Arclet is published as a zero-dependency TypeScript package, compatible with Node.js 18+, Deno, and Bun.
 
 ---
 
 ## Package Installation
 
-Install `@weave-agent/core` alongside `zod` (used for schema validation and structured output) using your package manager of choice:
+Install `@arclet/core` alongside `zod` (used for schema validation and structured output) using your package manager of choice:
 
 <Tabs items={['pnpm', 'npm', 'yarn', 'bun']}>
 <Tab value="pnpm">
 ```bash
-pnpm add @weave-agent/core zod
+pnpm add @arclet/core zod
 ```
 </Tab>
 <Tab value="npm">
 ```bash
-npm i @weave-agent/core zod
+npm i @arclet/core zod
 ```
 </Tab>
 <Tab value="yarn">
 ```bash
-yarn add @weave-agent/core zod
+yarn add @arclet/core zod
 ```
 </Tab>
 <Tab value="bun">
 ```bash
-bun add @weave-agent/core zod
+bun add @arclet/core zod
 ```
 </Tab>
 </Tabs>
@@ -39,14 +39,14 @@ bun add @weave-agent/core zod
 ### Verify the install
 
 ```bash
-npx @weave-agent/core --version
+npx @arclet/core --version
 ```
 
 ---
 
 ## Environment Credentials
 
-Weave's LLM adapters read provider keys from environment variables at runtime. You only need to set the key(s) for the provider(s) you plan to use — Weave will fail fast with a clear error if a required key is missing rather than failing silently.
+Arclet's LLM adapters read provider keys from environment variables at runtime. You only need to set the key(s) for the provider(s) you plan to use — Arclet will fail fast with a clear error if a required key is missing rather than failing silently.
 
 ```bash title=".env"
 # OpenAI provider
@@ -67,7 +67,7 @@ GEMINI_API_KEY="AIzaSy..."
 
 ## TypeScript Configuration
 
-Weave relies on modern TypeScript output and Node's native ESM resolution. Your `tsconfig.json` should target `ES2022` or higher with strict mode enabled:
+Arclet relies on modern TypeScript output and Node's native ESM resolution. Your `tsconfig.json` should target `ES2022` or higher with strict mode enabled:
 
 ```json title="tsconfig.json"
 {

@@ -8,7 +8,7 @@
     "benchmark": "tsx index.ts"
   },
   "dependencies": {
-    "@weave-agent/core": "workspace:*",
+    "@arclet/core": "workspace:*",
     "dotenv": "^17.4.2",
     "openai": "^7.3.0",
     "zod": "^4.4.3"

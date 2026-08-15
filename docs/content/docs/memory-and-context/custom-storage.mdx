@@ -5,7 +5,7 @@ description: "Persist session state using file or custom storage."
 
 # Session Persistence
 
-Weave provides session memory persistence to maintain state across multiple turns.
+Arclet provides session memory persistence to maintain state across multiple turns.
 
 ## Using `FileMemoryStore`
 
@@ -15,7 +15,7 @@ import {
   OpenAIAdapter,
   MemoryManager,
   FileMemoryStore,
-} from 'Weave';
+} from '@arclet/core';
 
 const memoryStore = new FileMemoryStore({ storageDir: './.sessions' });
 const memoryManager = new MemoryManager({ store: memoryStore, ttlSeconds: 86400 });

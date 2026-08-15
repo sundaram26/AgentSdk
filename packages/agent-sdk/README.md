@@ -1,4 +1,4 @@
-# @weave-agent/core
+# @arclet/core
 
 A TypeScript-native AI Agent SDK built on a robust state machine, featuring LLM provider adapters, memory management, strict guardrails, and structured outputs.
 
@@ -19,7 +19,7 @@ A TypeScript-native AI Agent SDK built on a robust state machine, featuring LLM 
 Install the core SDK and `zod` (required peer dependency for schemas).
 
 ```bash
-npm install @weave-agent/core zod
+npm install @arclet/core zod
 ```
 
 > **Note**: To keep bundle sizes small, LLM SDKs are optional peer dependencies. You must install the respective provider SDK if you plan to use its built-in adapter:
@@ -31,7 +31,7 @@ npm install openai @anthropic-ai/sdk @google/generative-ai
 ## Quick Start
 
 ```typescript
-import { createAgent, OpenAIAdapter } from '@weave-agent/core';
+import { createAgent, OpenAIAdapter } from '@arclet/core';
 import { z } from 'zod';
 
 // 1. Initialize the LLM Adapter (Dynamically imports 'openai' under the hood)
@@ -64,10 +64,10 @@ main();
 ## Comprehensive API Guide
 
 ### 1. LLM Adapters & Fallback Chains
-Weave uses a Ports & Adapters architecture. You can chain multiple providers together using `FallbackChain` to ensure high availability if a provider goes down or rate limits you.
+Arclet uses a Ports & Adapters architecture. You can chain multiple providers together using `FallbackChain` to ensure high availability if a provider goes down or rate limits you.
 
 ```typescript
-import { FallbackChain, OpenAIAdapter, ClaudeAdapter, GeminiAdapter } from '@weave-agent/core';
+import { FallbackChain, OpenAIAdapter, ClaudeAdapter, GeminiAdapter } from '@arclet/core';
 
 const llm = new FallbackChain([
     new ClaudeAdapter({ apiKey: '...' }),
@@ -82,7 +82,7 @@ const agent = createAgent().llm(llm).build();
 Prevent your agents from exceeding token limits by attaching a `ContextPruner`. It supports FIFO and Sliding Window strategies.
 
 ```typescript
-import { ContextPruner } from '@weave-agent/core';
+import { ContextPruner } from '@arclet/core';
 
 const pruner = new ContextPruner({
     maxContextTokens: 4000,
@@ -127,7 +127,7 @@ Attach pipelines to validate or transform data at three stages: `inputGuardrail`
 - `ToolBoundaryRule`: Prevents tools from accessing protected system resources.
 
 ```typescript
-import { PIIRedactionRule, PromptInjectionRule } from '@weave-agent/core';
+import { PIIRedactionRule, PromptInjectionRule } from '@arclet/core';
 
 const agent = createAgent()
     .inputGuardrail(new PromptInjectionRule())
@@ -139,7 +139,7 @@ const agent = createAgent()
 If a rule triggers an approval, the agent pauses execution. You can inspect and resume it asynchronously (e.g., via an API endpoint).
 
 ```typescript
-import { MemoryApprovalStore } from '@weave-agent/core';
+import { MemoryApprovalStore } from '@arclet/core';
 
 agentBuilder.approvalStore(new MemoryApprovalStore());
 
@@ -156,7 +156,7 @@ if (result.status === 'AWAITING_APPROVAL') {
 The Memory Engine supports persistent episodic and factual memory. It automatically runs background LLM tasks to extract facts about the user and summarize long conversations to save tokens.
 
 ```typescript
-import { FileMemoryStore } from '@weave-agent/core';
+import { FileMemoryStore } from '@arclet/core';
 
 const agent = createAgent()
     .memory({
@@ -190,7 +190,7 @@ console.log(result.data.sentiment); // Strictly typed!
 ```
 
 ### 7. Tracing & Observability
-Weave provides comprehensive tracing for every run, tracking duration, state changes, and tool executions.
+Arclet provides comprehensive tracing for every run, tracking duration, state changes, and tool executions.
 
 **Option A: Event Streaming**
 Perfect for building real-time UI components (like ChatGPT).
@@ -212,7 +212,7 @@ console.log(`Run took ${traceData.durationMs}ms with ${traceData.spans.length} s
 ```
 
 ### 8. Advanced: State Machine Customization
-Weave is built on a finite state machine. If you need highly specialized behavior (like custom verification steps or planning loops), you can override internal states.
+Arclet is built on a finite state machine. If you need highly specialized behavior (like custom verification steps or planning loops), you can override internal states.
 
 ```typescript
 agentBuilder.stateFactory({

@@ -1,7 +1,16 @@
 {
-  "name": "@weave-agent/core",
+  "name": "@arclet/core",
   "version": "1.0.1",
-  "description": "TypeScript-native AI Agent SDK with Ports & Adapters, State Machine, Memory, and Guardrails",
+  "description": "Deterministic TypeScript AI agent runtime with Ports & Adapters, finite state machine, multi-tier memory, and guardrails",
+  "homepage": "https://arclet.cc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sundaram26/AgentSdk.git",
+    "directory": "packages/agent-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/sundaram26/AgentSdk/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,12 +31,23 @@
     "test": "vitest run"
   },
   "keywords": [
+    "arclet",
     "ai",
     "agent",
-    "sdk",
+    "ai-agent",
+    "agentic-ai",
+    "llm",
+    "llm-framework",
+    "typescript-agent",
     "state-machine",
     "guardrails",
-    "memory"
+    "memory",
+    "openai",
+    "anthropic",
+    "claude",
+    "gemini",
+    "deterministic-ai",
+    "langchain-alternative"
   ],
   "license": "ISC",
   "peerDependencies": {

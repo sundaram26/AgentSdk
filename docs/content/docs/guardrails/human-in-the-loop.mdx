@@ -10,7 +10,7 @@ Implement workflows that require human confirmation before executing high-risk a
 ## Approval Gating
 
 ```typescript
-import { ApprovalGate } from 'Weave';
+import { ApprovalGate } from '@arclet/core';
 
 const approvalGate = new ApprovalGate({
   requireApprovalFor: ['delete_database', 'execute_payment'],

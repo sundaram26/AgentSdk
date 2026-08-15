@@ -1,0 +1,46 @@
+# Arclet (`@arclet/core`)
+> Deterministic AI Agent Runtime for TypeScript
+
+Arclet is a lightweight, zero-bloat TypeScript runtime for building production-grade AI agents and autonomous workflows. It provides a deterministic finite state machine, ports & adapters LLM abstraction with multi-provider failover, type-safe Zod tools, multi-tier cognitive memory, and non-bypassable guardrails.
+
+## Key Features
+- **Deterministic State Machine**: Explicit states (PLANNING, EXECUTING, VERIFYING, AWAITING_APPROVAL, DONE, FAILED).
+- **Multi-Provider Fallback**: Built-in adapters for OpenAI, Anthropic Claude, and Google Gemini with automatic failover via `FallbackChain`.
+- **Type-Safe Tools**: Zod schema validation with automatic type inference and LLM error self-repair.
+- **Guardrail Pipeline**: Pre-execution and post-execution safety filters (PII redaction, prompt injection defense, competitor filtering, and human-in-the-loop approval gates).
+- **Multi-Tier Memory**: Ephemeral, file-based (`FileMemoryStore`), and custom storage with automatic fact extraction and summarization.
+- **Observability**: Rich event streaming (`agent.stream()`) and full execution telemetry tracing (`Tracer`).
+
+## Quickstart
+
+```bash
+npm install @arclet/core zod
+```
+
+```typescript
+import { createAgent, createTool, OpenAIAdapter } from '@arclet/core';
+import { z } from 'zod';
+
+const weatherTool = createTool({
+  name: 'get_weather',
+  description: 'Get weather for a city',
+  inputSchema: z.object({ city: z.string() }),
+  execute: async ({ city }) => ({ city, temp: '72°F', condition: 'Sunny' })
+});
+
+const agent = createAgent()
+  .name('Assistant')
+  .llm(new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY }))
+  .tool(weatherTool)
+  .build();
+
+const result = await agent.run('What is the weather in Tokyo?');
+console.log(result.output);
+```
+
+## Documentation & Links
+- Website: https://arclet.cc
+- Documentation: https://docs.arclet.cc
+- Full LLMs reference: https://arclet.cc/llms-full.txt
+- NPM: https://www.npmjs.com/package/@arclet/core
+- GitHub: https://github.com/sundaram26/AgentSdk

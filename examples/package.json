@@ -1,9 +1,9 @@
 {
-  "name": "agent-sdk-examples",
+  "name": "arclet-examples",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@weave-agent/core": "workspace:*"
+    "@arclet/core": "workspace:*"
   }
 }

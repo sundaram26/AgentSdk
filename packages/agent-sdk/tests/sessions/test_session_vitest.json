@@ -10,22 +10,22 @@
       "content": "You live in San Francisco and prefer TypeScript!"
     }
   ],
-  "createdAt": "2026-08-03T18:00:16.658Z",
-  "updatedAt": "2026-08-03T18:00:16.711Z",
+  "createdAt": "2026-08-15T05:25:34.656Z",
+  "updatedAt": "2026-08-15T05:25:34.700Z",
   "facts": [
     {
-      "id": "fact_1785780016687_5kcjv",
+      "id": "fact_1786771534668_pvave",
       "fact": "User prefers TypeScript",
       "category": "preference",
-      "createdAt": "2026-08-03T18:00:16.687Z"
+      "createdAt": "2026-08-15T05:25:34.668Z"
     }
   ],
   "episodes": [
     {
-      "id": "ep_1785780016695_rcdt6",
+      "id": "ep_1786771534673_hrl5x",
       "sessionId": "test_session_vitest",
       "summary": "Session 2026: Built Guardrails Engine",
-      "timestamp": "2026-08-03T18:00:16.695Z"
+      "timestamp": "2026-08-15T05:25:34.673Z"
     }
   ]
 }
