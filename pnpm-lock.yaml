@@ -22,7 +22,7 @@ importers:
     dependencies:
       '@arclet/core':
         specifier: workspace:*
-        version: link:../packages/agent-sdk
+        version: link:../packages/core
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -41,7 +41,7 @@ importers:
     dependencies:
       '@arclet/core':
         specifier: workspace:*
-        version: link:../packages/agent-sdk
+        version: link:../packages/core
       fumadocs-core:
         specifier: ^15.0.0
         version: 15.8.5(@types/react@19.2.18)(lucide-react@0.468.0(react@19.2.8))(next@15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -93,7 +93,7 @@ importers:
     dependencies:
       '@arclet/core':
         specifier: workspace:*
-        version: link:../../packages/agent-sdk
+        version: link:../../packages/core
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -109,7 +109,7 @@ importers:
     dependencies:
       '@arclet/core':
         specifier: workspace:*
-        version: link:../../packages/agent-sdk
+        version: link:../../packages/core
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -125,7 +125,7 @@ importers:
     dependencies:
       '@arclet/core':
         specifier: workspace:*
-        version: link:../../packages/agent-sdk
+        version: link:../../packages/core
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -141,7 +141,7 @@ importers:
     dependencies:
       '@arclet/core':
         specifier: workspace:*
-        version: link:../../packages/agent-sdk
+        version: link:../../packages/core
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -193,7 +193,7 @@ importers:
         specifier: ^5
         version: 5.9.3
 
-  packages/agent-sdk:
+  packages/core:
     dependencies:
       dotenv:
         specifier: ^17.4.2
