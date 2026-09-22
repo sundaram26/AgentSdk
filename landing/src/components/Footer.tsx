@@ -9,7 +9,7 @@ export default function Footer() {
           Start building.
         </h2>
         <div className="mb-12 inline-block border border-line bg-surface rounded-full px-4 py-2">
-          <code className="font-mono text-sm text-ink">npm install @arclet/core</code>
+          <code className="font-mono text-sm text-ink">npm i @weave-agent/core</code>
         </div>
         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <a href="https://weave-docs.sundaramsingh.com/docs" className="w-full sm:w-auto bg-ink text-surface rounded-full px-8 py-3 text-sm font-medium hover:opacity-90 transition-opacity">
@@ -32,7 +32,7 @@ export default function Footer() {
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-muted">
             <a href="https://weave-docs.sundaramsingh.com/docs" className="hover:text-ink transition-colors">Docs</a>
             <a href="https://github.com/sundaram26/AgentSdk" className="hover:text-ink transition-colors">GitHub</a>
-            <a href="https://www.npmjs.com/package/@arclet/core" className="hover:text-ink transition-colors">npm</a>
+            <a href="https://www.npmjs.com/package/@weave-agent/core" className="hover:text-ink transition-colors">npm</a>
             <a href="#examples" className="hover:text-ink transition-colors">Examples</a>
             <a href="https://github.com/sundaram26/AgentSdk/blob/main/LICENSE" className="hover:text-ink transition-colors">License</a>
           </div>

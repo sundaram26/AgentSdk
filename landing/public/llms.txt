@@ -1,4 +1,4 @@
-# Arclet (`@arclet/core`)
+# Arclet (`@weave-agent/core`)
 > Deterministic AI Agent Runtime for TypeScript
 
 Arclet is a lightweight, zero-bloat TypeScript runtime for building production-grade AI agents and autonomous workflows. It provides a deterministic finite state machine, ports & adapters LLM abstraction with multi-provider failover, type-safe Zod tools, multi-tier cognitive memory, and non-bypassable guardrails.
@@ -14,11 +14,11 @@ Arclet is a lightweight, zero-bloat TypeScript runtime for building production-g
 ## Quickstart
 
 ```bash
-npm install @arclet/core zod
+npm i @weave-agent/core zod
 ```
 
 ```typescript
-import { createAgent, createTool, OpenAIAdapter } from '@arclet/core';
+import { createAgent, createTool, OpenAIAdapter } from '@weave-agent/core';
 import { z } from 'zod';
 
 const weatherTool = createTool({
@@ -42,5 +42,5 @@ console.log(result.output);
 - Website: https://arclet.cc
 - Documentation: https://weave-docs.sundaramsingh.com/docs
 - Full LLMs reference: https://arclet.cc/llms-full.txt
-- NPM: https://www.npmjs.com/package/@arclet/core
+- NPM: https://www.npmjs.com/package/@weave-agent/core
 - GitHub: https://github.com/sundaram26/AgentSdk

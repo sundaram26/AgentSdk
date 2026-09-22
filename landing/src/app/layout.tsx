@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     "Multi-Provider LLM Fallback",
     "AI Guardrails",
     "Agent State Machine",
-    "@arclet/core"
+    "@weave-agent/core"
   ],
   authors: [{ name: "Arclet Team", url: "https://arclet.cc" }],
   creator: "Arclet Team",
@@ -91,7 +91,7 @@ const jsonLd = {
   "description":
     "Deterministic runtime for LLM agents in TypeScript — typed tools, provider fallback, state machine, and guardrails.",
   "url": "https://arclet.cc",
-  "downloadUrl": "https://www.npmjs.com/package/@arclet/core",
+  "downloadUrl": "https://www.npmjs.com/package/@weave-agent/core",
   "offers": {
     "@type": "Offer",
     "price": "0",
