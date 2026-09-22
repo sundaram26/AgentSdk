@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://arclet.cc"),
+  metadataBase: new URL("https://weave.sundaramsingh.com"),
   title: {
     default: "Arclet — Deterministic AI Agent Runtime for TypeScript",
     template: "%s | Arclet",
@@ -36,37 +36,32 @@ export const metadata: Metadata = {
     "Multi-Provider LLM Fallback",
     "AI Guardrails",
     "Agent State Machine",
-    "@weave-agent/core"
+    "arclet"
   ],
-  authors: [{ name: "Arclet Team", url: "https://arclet.cc" }],
+  authors: [{ name: "Arclet Team", url: "https://weave.sundaramsingh.com" }],
   creator: "Arclet Team",
   publisher: "Arclet",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://arclet.cc",
+    url: "https://weave.sundaramsingh.com",
+    siteName: "Arclet",
     title: "Arclet — Deterministic AI Agent Runtime for TypeScript",
     description:
-      "Engineered for reasoning, built for production. Deterministic state machine runtime, typed tools, multi-provider fallback, and cognitive memory.",
-    siteName: "Arclet",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Arclet — Deterministic AI Agent Runtime for TypeScript",
-      },
-    ],
+      "A deterministic runtime for LLM agents in TypeScript. Built with a strict finite state machine, ports & adapters architecture, multi-tier cognitive memory, and non-bypassable guardrails.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Arclet — Deterministic AI Agent Runtime for TypeScript",
     description:
-      "Engineered for reasoning, built for production. Deterministic state machine runtime, typed tools, and non-bypassable guardrails.",
-    images: ["/og-image.png"],
+      "A deterministic runtime for LLM agents in TypeScript. Built with a strict finite state machine, ports & adapters architecture, multi-tier cognitive memory, and non-bypassable guardrails.",
+    creator: "@arclet_ai",
   },
   alternates: {
-    canonical: "https://arclet.cc",
+    canonical: "https://weave.sundaramsingh.com",
+    types: {
+      "text/plain": "https://weave.sundaramsingh.com/llms.txt",
+    },
   },
   robots: {
     index: true,
@@ -90,8 +85,8 @@ const jsonLd = {
   "programmingLanguage": "TypeScript",
   "description":
     "Deterministic runtime for LLM agents in TypeScript — typed tools, provider fallback, state machine, and guardrails.",
-  "url": "https://arclet.cc",
-  "downloadUrl": "https://www.npmjs.com/package/@weave-agent/core",
+  "url": "https://weave.sundaramsingh.com",
+  "downloadUrl": "https://www.npmjs.com/package/arclet",
   "offers": {
     "@type": "Offer",
     "price": "0",
@@ -100,7 +95,7 @@ const jsonLd = {
   "author": {
     "@type": "Organization",
     "name": "Arclet",
-    "url": "https://arclet.cc",
+    "url": "https://weave.sundaramsingh.com",
   },
 };
 

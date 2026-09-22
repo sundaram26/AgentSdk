@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@arclet/core": "workspace:*",
+    "arclet": "workspace:*",
     "fumadocs-core": "^15.0.0",
     "fumadocs-mdx": "^11.0.0",
     "fumadocs-ui": "^15.0.0",

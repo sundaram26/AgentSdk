@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@arclet/core": "workspace:*"
+    "arclet": "workspace:*"
   }
 }

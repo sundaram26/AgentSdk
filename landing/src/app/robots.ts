@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
       },
     ],
-    sitemap: 'https://arclet.cc/sitemap.xml',
-    host: 'https://arclet.cc',
+    sitemap: 'https://weave.sundaramsingh.com/sitemap.xml',
+    host: 'https://weave.sundaramsingh.com',
   };
 }

@@ -1,9 +1,10 @@
-# ⚡ Arclet (`@arclet/core`)
+# ⚡ Arclet (`arclet`)
 
-[![npm version](https://img.shields.io/npm/v/@arclet/core.svg?color=blue)](https://www.npmjs.com/package/@arclet/core)
+[![npm version](https://img.shields.io/npm/v/arclet.svg?color=blue)](https://www.npmjs.com/package/arclet)
+[![Docs](https://img.shields.io/badge/Docs-weave--docs-blue)](https://weave-docs.sundaramsingh.com/docs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg)](https://www.typescriptlang.org/)
-[![Website](https://img.shields.io/badge/Website-arclet.cc-black)](https://arclet.cc)
+[![Website](https://img.shields.io/badge/Website-weave.sundaramsingh.com-black)](https://weave.sundaramsingh.com)
 
 **Arclet** is a lightweight, deterministic TypeScript AI agent runtime built with a finite state machine, ports & adapters architecture, multi-tier cognitive memory, and provider-agnostic support (OpenAI, Anthropic Claude, Google Gemini).
 
@@ -28,14 +29,14 @@
 Install the package via `pnpm` (or your preferred package manager):
 
 ```bash
-pnpm add @arclet/core zod
+pnpm add arclet zod
 pnpm add -D typescript tsx
 ```
 
 ### Basic Example
 
 ```typescript
-import { createAgent, createTool, OpenAIAdapter } from '@arclet/core';
+import { createAgent, createTool, OpenAIAdapter } from 'arclet';
 import { z } from 'zod';
 
 // 1. Define a tool with strict input validation

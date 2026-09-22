@@ -5,11 +5,13 @@
   "type": "module",
   "packageManager": "pnpm@10.16.1",
   "scripts": {
-    "build": "pnpm --filter agent-sdk build",
-    "typecheck": "pnpm --filter agent-sdk typecheck",
-    "audit:types": "pnpm --filter agent-sdk audit:types",
-    "test": "pnpm --filter agent-sdk test",
+    "build": "pnpm --filter arclet build",
+    "typecheck": "pnpm --filter arclet typecheck",
+    "audit:types": "pnpm --filter arclet audit:types",
+    "test": "pnpm --filter arclet test",
     "dev": "pnpm -r --parallel run dev",
+    "dev:docs": "pnpm --filter arclet-docs dev",
+    "build:docs": "pnpm --filter arclet-docs build",
     "dev:landing": "pnpm --filter landing dev",
     "build:landing": "pnpm --filter landing build",
     "start:landing": "pnpm --filter landing start"

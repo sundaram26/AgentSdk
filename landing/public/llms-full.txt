@@ -1,10 +1,10 @@
-# Arclet Full Developer Documentation (`@weave-agent/core`)
+# Arclet Full Developer Documentation (`arclet`)
 
 Arclet is a deterministic AI agent runtime engineered for TypeScript.
 
 ## 1. Installation
 ```bash
-npm i @weave-agent/core zod
+npm i arclet zod
 # Optional provider drivers:
 npm install openai @anthropic-ai/sdk @google/generative-ai
 ```
@@ -27,7 +27,7 @@ npm install openai @anthropic-ai/sdk @google/generative-ai
 ## 3. Tool Registration & Type Safety
 Tools use Zod schemas for input validation:
 ```typescript
-import { createTool } from '@weave-agent/core';
+import { createTool } from 'arclet';
 import { z } from 'zod';
 
 export const calculateTax = createTool({
@@ -47,7 +47,7 @@ export const calculateTax = createTool({
 ## 4. Multi-Agent Handoffs
 Agents can act as sub-agents to create hierarchical multi-agent teams with max handoff depth limits:
 ```typescript
-import { createAgent } from '@weave-agent/core';
+import { createAgent } from 'arclet';
 
 const researcher = createAgent().name('Researcher').llm(openai).build();
 const writer = createAgent()
@@ -60,7 +60,7 @@ const writer = createAgent()
 
 ## 5. Guardrail Pipeline & Human-in-the-Loop
 ```typescript
-import { GuardrailPipeline, PromptInjectionRule, PIIRedactionRule, ApprovalGate } from '@weave-agent/core';
+import { GuardrailPipeline, PromptInjectionRule, PIIRedactionRule, ApprovalGate } from 'arclet';
 
 const agent = createAgent()
   .inputGuardrail(new PromptInjectionRule({ threshold: 0.85 }))
@@ -73,7 +73,7 @@ const agent = createAgent()
 
 ## 6. Memory Engine
 ```typescript
-import { createAgent, FileMemoryStore } from '@weave-agent/core';
+import { createAgent, FileMemoryStore } from 'arclet';
 
 const agent = createAgent()
   .memory({
@@ -85,7 +85,7 @@ const agent = createAgent()
 ```
 
 ## Links & Community
-- Main Website: https://arclet.cc
+- Main Website: https://weave.sundaramsingh.com
 - Docs: https://weave-docs.sundaramsingh.com/docs
-- NPM: https://www.npmjs.com/package/@weave-agent/core
+- NPM: https://www.npmjs.com/package/arclet
 - GitHub: https://github.com/sundaram26/AgentSdk

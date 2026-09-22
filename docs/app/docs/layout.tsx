@@ -13,6 +13,18 @@ export default function Layout({ children }: { children: ReactNode }) {
                     </span>
                 ),
             }}
+            links={[
+                {
+                    text: 'npm',
+                    url: 'https://www.npmjs.com/package/arclet',
+                    external: true,
+                },
+                {
+                    text: 'GitHub',
+                    url: 'https://github.com/sundaram26/AgentSdk',
+                    external: true,
+                },
+            ]}
         >
             {children}
         </DocsLayout>

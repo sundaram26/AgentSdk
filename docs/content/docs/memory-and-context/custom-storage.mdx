@@ -15,7 +15,7 @@ import {
   OpenAIAdapter,
   MemoryManager,
   FileMemoryStore,
-} from '@arclet/core';
+} from 'arclet';
 
 const memoryStore = new FileMemoryStore({ storageDir: './.sessions' });
 const memoryManager = new MemoryManager({ store: memoryStore, ttlSeconds: 86400 });

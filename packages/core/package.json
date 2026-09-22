@@ -1,8 +1,8 @@
 {
-  "name": "@arclet/core",
+  "name": "arclet",
   "version": "1.0.1",
   "description": "Deterministic TypeScript AI agent runtime with Ports & Adapters, finite state machine, multi-tier memory, and guardrails",
-  "homepage": "https://arclet.cc",
+  "homepage": "https://weave.sundaramsingh.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/sundaram26/AgentSdk.git",
