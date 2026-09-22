@@ -86,6 +86,6 @@ const agent = createAgent()
 
 ## Links & Community
 - Main Website: https://arclet.cc
-- Docs: https://docs.arclet.cc
+- Docs: https://weave-docs.sundaramsingh.com/docs
 - NPM: https://www.npmjs.com/package/@arclet/core
 - GitHub: https://github.com/sundaram26/AgentSdk

@@ -13,7 +13,7 @@ export default function Navbar() {
 
       {/* Center */}
       <div className="hidden md:flex flex-1 justify-center space-x-8">
-        <a href="https://docs.arclet.cc" className="text-xs uppercase tracking-widest text-muted hover:text-ink transition-colors font-medium">
+        <a href="https://weave-docs.sundaramsingh.com/docs" className="text-xs uppercase tracking-widest text-muted hover:text-ink transition-colors font-medium">
           Docs
         </a>
         {['Capabilities', 'Benchmarks', 'Examples'].map((item) => (
@@ -45,7 +45,7 @@ export default function Navbar() {
           <Package className="w-3.5 h-3.5" />
           <span>v1.0.1</span>
         </div>
-        <a href="https://docs.arclet.cc" className="bg-ink text-surface rounded-full px-5 py-2 text-sm font-medium hover:opacity-90 transition-opacity">
+        <a href="https://weave-docs.sundaramsingh.com/docs" className="bg-ink text-surface rounded-full px-5 py-2 text-sm font-medium hover:opacity-90 transition-opacity">
           Get Started
         </a>
       </div>

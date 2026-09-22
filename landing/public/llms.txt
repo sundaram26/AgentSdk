@@ -40,7 +40,7 @@ console.log(result.output);
 
 ## Documentation & Links
 - Website: https://arclet.cc
-- Documentation: https://docs.arclet.cc
+- Documentation: https://weave-docs.sundaramsingh.com/docs
 - Full LLMs reference: https://arclet.cc/llms-full.txt
 - NPM: https://www.npmjs.com/package/@arclet/core
 - GitHub: https://github.com/sundaram26/AgentSdk
